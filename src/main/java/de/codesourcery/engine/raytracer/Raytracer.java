@@ -23,18 +23,15 @@ public class Raytracer {
 		final int centerX = w / 2;
 		final int centerY = h / 2;
 		
-		final int max = w > h ? w : h;
-		final int VIEWPORT_WIDTH=max;
-		final int VIEWPORT_HEIGHT=max;
+		final int max = ((w > h ? w : h)/2)+1;
+		final int x1 = -max;
+		final int x2 = max;
 		
-		final int x1 = -VIEWPORT_WIDTH;
-		final int x2 = VIEWPORT_WIDTH;
+		final int y1 = -max;
+		final int y2 = max;
 		
-		final int y1 = -VIEWPORT_HEIGHT;
-		final int y2 = VIEWPORT_HEIGHT;
-		
-		final double scaleX = w / (double) VIEWPORT_WIDTH;
-		final double scaleY = h / (double) VIEWPORT_HEIGHT;
+		final double scaleX = w / (double) max/2.0;
+		final double scaleY = h / (double) max/2.0;
 		
 		final Vector4 p0 = new Vector4(0,0,0);
 		final Vector4 p1 = new Vector4(-5,0,0);

@@ -57,7 +57,7 @@ public class RayTracerDemo {
 		
 		Plane p1 = new Plane( new Vector4(0,-500,0 ) , new Vector4(0,100,0) );
 		Plane p2 = new Plane( new Vector4(0,0,-700 ) , new Vector4(0,0,100) );
-		Plane p3 = new Plane( new Vector4(-500,0,0 ) , new Vector4(100,0,0) );		
+		Plane p3 = new Plane( new Vector4(-400,0,0 ) , new Vector4(100,0,0) );		
 
 		final Scene scene = new Scene();
 		scene.addObject( sphere1 );
@@ -65,7 +65,7 @@ public class RayTracerDemo {
 		scene.addObject( sphere3 );	
 		scene.addObject( p1 );
 		scene.addObject( p2 );
-//		scene.addObject( p3 );			
+		scene.addObject( p3 );			
 		
 //		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
 		scene.addObject( new PointLightsource( new Vector4( 0,250,0 ) , Color.RED) );
