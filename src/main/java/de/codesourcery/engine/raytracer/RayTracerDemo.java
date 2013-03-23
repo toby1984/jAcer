@@ -65,7 +65,7 @@ public class RayTracerDemo {
 		scene.addObject( sphere3 );	
 		scene.addObject( p1 );
 		scene.addObject( p2 );
-		scene.addObject( p3 );			
+//		scene.addObject( p3 );			
 		
 //		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
 		scene.addObject( new PointLightsource( new Vector4( 0,250,0 ) , Color.RED) );

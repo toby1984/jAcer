@@ -71,7 +71,7 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>1.2.1</version>
       <configuration>
-       <mainClass>de.codesourcery.engine.Test3D</mainClass>
+       <mainClass>de.codesourcery.engine.raytracer.RayTracerDemo</mainClass>
 <!--
          <arguments>
            <argument>${basedir}/samples/specsample.dasm16</argument>
