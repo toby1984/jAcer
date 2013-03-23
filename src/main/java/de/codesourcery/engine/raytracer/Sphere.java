@@ -3,22 +3,21 @@ package de.codesourcery.engine.raytracer;
 
 public class Sphere extends Raytracable {
 
-	public Matrix modelMatrix;
+	public Vector4 center;
 	public double radius;
 	
-	public Sphere(Matrix modelMatrix,double radius) 
+	public Sphere(Vector4 center,double radius) 
 	{
-		this.modelMatrix = modelMatrix;
+		this.center = center;
 		this.radius = radius;
 	}
 
 	@Override
 	public IntersectionInfo intersect(Ray inputRay) 
 	{
-		final Ray ray = inputRay.transform( modelMatrix );
+		final Ray ray = inputRay.transform( center );
 		
 		// intersection with sphere at center (0,0,0)
-		
 		double A = ray.v.magnitude(); // v^2
 		double B = 2*ray.u.dotProduct( ray.v );
 		double C = ray.u.magnitude() - radius*radius; // u^2 - 1
@@ -43,18 +42,17 @@ public class Sphere extends Raytracable {
 	}
 
 	@Override
-	public Vector4 normalVectorAt(Vector4 point) 
+	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates) 
 	{
 		// the normal vector is just ( point minus center )
-		final Vector4 transformedPoint = point.multiply( modelMatrix );
-		final Vector4 center = new Vector4(0,0,0).multiply( modelMatrix );
-		return transformedPoint.minus( center ).normalize();
+//		final Vector4 transformedPoint = pointInViewCoordinates.multiply( modelMatrix );
+		return pointInViewCoordinates.minus(center).normalize();		
+//		return pointInViewCoordinates.minus(center).normalize();
 	}
 	
 	@Override
 	public String toString() 
 	{
-		final Vector4 center = new Vector4(0,0,0).multiply( modelMatrix );
 		return "Sphere[ center: "+center+" , radius: "+radius+"]";
 	}
 }

@@ -22,4 +22,9 @@ public class IntersectionInfo {
 		solutions[ solutionCount++ ] = t2;
 		return this;
 	}	
+	
+	public Vector4 normalAtIntersection() 
+	{
+		return object.normalVectorAt( nearestIntersectionPoint );
+	}
 }

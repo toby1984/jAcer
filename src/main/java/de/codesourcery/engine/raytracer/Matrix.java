@@ -16,11 +16,11 @@ public final class Matrix
      * 3 7 11 15
      * 
      */
-    private final float[] data;
+    private final double[] data;
 
     public Matrix(Matrix other) 
     {
-        this.data = new float[16];
+        this.data = new double[16];
         for ( int i = 0 ; i < 16 ;i++) {
             this.data[i] = other.data[i];
         }
@@ -30,10 +30,10 @@ public final class Matrix
      * Creates an empty 4x4 matrix.
      */
     public Matrix() {
-        this.data = new float[SIZE*SIZE];
+        this.data = new double[SIZE*SIZE];
     }
 
-    public Matrix(float[] data) 
+    public Matrix(double[] data) 
     {
         if ( data.length != SIZE*SIZE ) {
             throw new IllegalArgumentException("Invalid array length: "+data.length);
@@ -63,18 +63,18 @@ public final class Matrix
      */
     public Matrix(Vector4 v1,Vector4 v2,Vector4 v3,Vector4 v4) 
     {
-        this.data = new float[ SIZE*SIZE ];
+        this.data = new double[ SIZE*SIZE ];
         v1.copyInto( this.data , 0 );
         v2.copyInto( this.data , 4 );
         v3.copyInto( this.data , 8 );
         v4.copyInto( this.data , 12 );
     }
 
-    public void set(int column,int row,float value) {
+    public void set(int column,int row,double value) {
         this.data[ column*SIZE + row ] = value;
     }
 
-    public float get(int column,int row) {
+    public double get(int column,int row) {
         return this.data[ column*SIZE + row ];
     }
 
@@ -85,7 +85,7 @@ public final class Matrix
      * @return
      */
     public Matrix multiply(Matrix other) {
-        return new Matrix( multiply( other , new float[ SIZE*SIZE ] ) );
+        return new Matrix( multiply( other , new double[ SIZE*SIZE ] ) );
     }
     
     /**
@@ -95,7 +95,7 @@ public final class Matrix
      * @param target target array where results should be stored (in column-major order)
      * @return
      */
-    public float[] multiply(Matrix other,float[] target) {
+    public double[] multiply(Matrix other,double[] target) {
 
         target[ 0 ] = this.data[ 0 ] * other.data[ 0 ] + this.data[ 4 ] * other.data[ 1 ] + 
                 this.data[ 8 ] * other.data[ 2 ] + this.data[ 12 ] * other.data[ 3 ];
@@ -189,9 +189,9 @@ public final class Matrix
         set( 3 , 3 , 1 );
     }	
 
-    public static Matrix scale(float factor) 
+    public static Matrix scale(double factor) 
     {
-        float[] data = new float[] {
+        double[] data = new double[] {
                 factor , 0 , 0 , 0 ,
                 0 , factor , 0 , 0 ,
                 0 , 0 , factor , 0 ,
@@ -200,9 +200,9 @@ public final class Matrix
         return new Matrix( data );
     }   
 
-    public static Matrix scale(float scaleX,float scaleY,float scaleZ) 
+    public static Matrix scale(double scaleX,double scaleY,double scaleZ) 
     {
-        float[] data = new float[] {
+        double[] data = new double[] {
                 scaleX , 0 , 0 , 0 ,
                 0 , scaleY , 0 , 0 ,
                 0 , 0 , scaleZ , 0 ,
@@ -227,7 +227,7 @@ public final class Matrix
         return builder.toString();
     }
 
-    private static String format(float v) {
+    private static String format(double v) {
         final DecimalFormat df = new DecimalFormat("##0.0##");
         return StringUtils.leftPad( df.format( v ) , 6 );
     }
@@ -250,11 +250,11 @@ public final class Matrix
         int i = 0;
         for ( Vector4 vector4 : input) 
         {
-            final float[] result = new float[4];
-            final float[] thisData = this.data;
+            final double[] result = new double[4];
+            final double[] thisData = this.data;
 
             final int offset = vector4.getDataOffset(); 
-            final float[] data = vector4.getDataArray();
+            final double[] data = vector4.getDataArray();
 
             result[0] = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
                     thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
@@ -273,11 +273,11 @@ public final class Matrix
         return transformed;
     }
     
-    public float[] multiply(float[] vectorData)
+    public double[] multiply(double[] vectorData)
     {
-        final float[] result = new float[ vectorData.length ];
+        final double[] result = new double[ vectorData.length ];
 
-        final float[] thisData = this.data;
+        final double[] thisData = this.data;
         
         int i = 0;
         for ( int offset = 0 ; offset < vectorData.length ; offset += 4) 
@@ -299,11 +299,11 @@ public final class Matrix
 
     public Vector4 multiply(Vector4 vector4)
     {
-        final float[] result = new float[4];
-        final float[] thisData = this.data;
+        final double[] result = new double[4];
+        final double[] thisData = this.data;
 
         final int offset = vector4.getDataOffset(); 
-        final float[] data = vector4.getDataArray();
+        final double[] data = vector4.getDataArray();
 
         result[0] = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
                 thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
@@ -337,21 +337,21 @@ public final class Matrix
 
     public void multiplyInPlace(Vector4 vector4)
     {
-        final float[] thisData = this.data;
+        final double[] thisData = this.data;
 
         final int offset = vector4.getDataOffset(); 
-        final float[] data = vector4.getDataArray();
+        final double[] data = vector4.getDataArray();
         
-        final float x = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
+        final double x = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
                 thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
 
-        final float y = thisData[ 1 ] * data[ offset ] + thisData[ 1 + SIZE ] * data[ offset+1 ] + thisData[ 1 + SIZE*2 ] * data[ offset+2 ]+
+        final double y = thisData[ 1 ] * data[ offset ] + thisData[ 1 + SIZE ] * data[ offset+1 ] + thisData[ 1 + SIZE*2 ] * data[ offset+2 ]+
                 thisData[ 1 + SIZE*3 ] * data[ offset+3 ];
 
-        final float z = thisData[ 2 ] * data[ offset ] + thisData[ 2 + SIZE ] * data[ offset+1 ]+
+        final double z = thisData[ 2 ] * data[ offset ] + thisData[ 2 + SIZE ] * data[ offset+1 ]+
                 thisData[ 2 + SIZE*2 ] * data[ offset+2 ] + thisData[ 2 + SIZE*3 ] * data[ offset+3 ];
 
-        final float w = thisData[ 3 ] * data[ offset ]+ thisData[ 3 + SIZE ] * data[ offset+1 ]+ thisData[ 3 + SIZE*2 ] * data[ offset+2 ]+
+        final double w = thisData[ 3 ] * data[ offset ]+ thisData[ 3 + SIZE ] * data[ offset+1 ]+ thisData[ 3 + SIZE*2 ] * data[ offset+2 ]+
                 thisData[ 3 + SIZE*3 ] * data[ offset+3 ];        
 
         data[ offset ] = x;
@@ -362,11 +362,11 @@ public final class Matrix
 
     public Matrix invert() {
 
-        final float[] m = this.data;
-        final float[] invOut = new float[16];
+        final double[] m = this.data;
+        final double[] invOut = new double[16];
 
-        float[] inv = new float[16];
-        float det=0;
+        double[] inv = new double[16];
+        double det=0;
         int i = 0;
 
         inv[0] = m[5]  * m[10] * m[15] - 
@@ -496,7 +496,7 @@ public final class Matrix
         return new Matrix( invOut );
     }
 
-    public float[] getData()
+    public double[] getData()
     {
         return this.data;
     }

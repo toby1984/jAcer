@@ -1,5 +1,6 @@
 package de.codesourcery.engine.raytracer;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -14,7 +15,7 @@ public class RayTracerDemo {
 
 	public static void main(String[] args) {
 
-		final Vector4 eyePosition = new Vector4( 0 , 0 , 100 );
+		final Vector4 eyePosition = new Vector4( 0 , 100 , 700 );
 		
 //		final Vector4 eyePosition = new Vector4( 0 , 0 , 10 );
 //		final Vector4 viewDirection = new Vector4( 0 , 0 , -1 );
@@ -50,11 +51,25 @@ public class RayTracerDemo {
 //		}
 //		System.exit(0);
 
-		// unit-sphere translated by 10 units on the Z axis
-		final Sphere sphere1 = new Sphere( Matrix.identity() , 100 );
+		final Sphere sphere1 = new Sphere( new Vector4( -150 ,0,-100) , 100 );
+		final Sphere sphere2 = new Sphere( new Vector4( 250 , 00 , -200) , 100 );		
+		final Sphere sphere3 = new Sphere( new Vector4( -100 , -400 , -200) , 100 );	
+		
+		Plane p1 = new Plane( new Vector4(0,-500,0 ) , new Vector4(0,100,0) );
+		Plane p2 = new Plane( new Vector4(0,0,-700 ) , new Vector4(0,0,100) );
+		Plane p3 = new Plane( new Vector4(-500,0,0 ) , new Vector4(100,0,0) );		
 
 		final Scene scene = new Scene();
 		scene.addObject( sphere1 );
+		scene.addObject( sphere2 );
+		scene.addObject( sphere3 );	
+		scene.addObject( p1 );
+		scene.addObject( p2 );
+//		scene.addObject( p3 );			
+		
+//		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
+		scene.addObject( new PointLightsource( new Vector4( 0,250,0 ) , Color.RED) );
+//		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) );		
 
 		final Raytracer tracer = new Raytracer( eyePosition  , scene );
 
@@ -124,8 +139,8 @@ public class RayTracerDemo {
 			}
 		};
 
-		panel.setMinimumSize( new Dimension(200,200 ) );
-		panel.setPreferredSize( new Dimension(200,200 ) );		
+		panel.setMinimumSize( new Dimension(800,600 ) );
+		panel.setPreferredSize( new Dimension(800,600 ) );		
 
 		final JFrame frame = new JFrame("Tracer V0.1");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );

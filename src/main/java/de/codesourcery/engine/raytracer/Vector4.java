@@ -4,12 +4,12 @@ import java.text.DecimalFormat;
 
 public final class Vector4 
 {
-    private float[] data;
+    private double[] data;
     private int offset=0;
     
     public Vector4(Vector4 input) 
     {
-        data = new float[4];
+        data = new double[4];
         input.copyInto( data , 0 );
     }
     
@@ -21,14 +21,14 @@ public final class Vector4
     }
     
     public Vector4() {
-        data = new float[4];
+        data = new double[4];
     }
     
-    public Vector4(float[] data) {
+    public Vector4(double[] data) {
         this.data = data;
     }    
     
-    public void setData(float[] data,int offset) {
+    public void setData(double[] data,int offset) {
         this.data = data;
         this.offset = offset;
     }
@@ -36,7 +36,7 @@ public final class Vector4
     public void copyFrom(Vector4 other)
     {
     	final int otherOffset = other.getDataOffset();
-    	final float[] otherData = other.getDataArray();
+    	final double[] otherData = other.getDataArray();
     	
         this.data[offset] = otherData[ otherOffset ];
         this.data[offset+1] = otherData[ otherOffset+1 ];
@@ -44,7 +44,7 @@ public final class Vector4
         this.data[offset+3] = otherData[ otherOffset+3 ];
     }    
     
-    public void copyInto(float[] array,int startingOffset) 
+    public void copyInto(double[] array,int startingOffset) 
     {
         array[startingOffset] = this.data[offset];
         array[startingOffset+1] = this.data[offset+1];
@@ -52,7 +52,7 @@ public final class Vector4
         array[startingOffset+3] = this.data[offset+3];
     }
     
-    public Vector4(float[] data,int offset) 
+    public Vector4(double[] data,int offset) 
     {
         this.data = data;
         this.offset = offset;
@@ -65,67 +65,67 @@ public final class Vector4
                 this.w() == other.w();
     }
     
-    public void x(float value) {
+    public void x(double value) {
         this.data[ offset ] = value;
     }
     
-    public void r(float value) {
+    public void r(double value) {
         this.data[ offset ] = value;
     }    
     
-    public void y(float value) {
+    public void y(double value) {
         this.data[ offset +1 ] = value;        
     }
     
-    public void g(float value) {
+    public void g(double value) {
         this.data[ offset +1 ] = value;        
     }    
     
-    public void z(float value) {
+    public void z(double value) {
         this.data[ offset +2 ] = value;           
     }
     
-    public void b(float value) {
+    public void b(double value) {
         this.data[ offset +2 ] = value;           
     }    
     
-    public void w(float value) {
+    public void w(double value) {
         this.data[ offset + 3 ] = value;  
     }
     
-    public void a(float value) {
+    public void a(double value) {
         this.data[ offset + 3 ] = value;  
     }    
     
-    public float x() {
+    public double x() {
         return this.data[ offset ];
     }
     
-    public float r() {
+    public double r() {
         return this.data[ offset ];
     }    
     
-    public float y() {
+    public double y() {
         return this.data[ offset + 1 ];
     }
     
-    public float g() {
+    public double g() {
         return this.data[ offset + 1 ];
     }    
     
-    public float z() {
+    public double z() {
         return this.data[ offset + 2 ];
     }
     
-    public float b() {
+    public double b() {
         return this.data[ offset + 2 ];
     }    
     
-    public float w() {
+    public double w() {
         return this.data[ offset + 3];
     }
     
-    public float a() {
+    public double a() {
         return this.data[ offset + 3];
     }    
     
@@ -135,12 +135,12 @@ public final class Vector4
         return new Vector4( this.x() - other.x() , this.y() - other.y() , this.z() - other.z() , w() );
     }
     
-    public float distanceTo(Vector4 point) 
+    public double distanceTo(Vector4 point) 
     {
-    	float x = this.x() - point.x();
-    	float y = this.y() - point.y();
-    	float z = this.z() - point.z();
-    	return (float) Math.sqrt( x*x + y*y + z*z );
+    	double x = this.x() - point.x();
+    	double y = this.y() - point.y();
+    	double z = this.z() - point.z();
+    	return (double) Math.sqrt( x*x + y*y + z*z );
     }
     
     public Vector4 plus(Vector4 other) {
@@ -148,21 +148,21 @@ public final class Vector4
         return new Vector4( this.x() + other.x() , this.y() + other.y() , this.z() + other.z() , w() );
     }        
     
-    public Vector4(float x,float y,float z) {
+    public Vector4(double x,double y,double z) {
         this(x,y,z,1);
     }
     
-    public Vector4(float x,float y,float z,float w) 
+    public Vector4(double x,double y,double z,double w) 
     {
-        this.data = new float[] { x , y , z , w };
+        this.data = new double[] { x , y , z , w };
     }
     
     public Vector4 multiply( Matrix matrix) 
     {
-        final float[] result = new float[4];
+        final double[] result = new double[4];
         
-        final float[] thisData = this.data;
-        final float[] matrixData = matrix.getData();
+        final double[] thisData = this.data;
+        final double[] matrixData = matrix.getData();
 
         final int offset = this.offset;
         
@@ -181,7 +181,7 @@ public final class Vector4
         return new Vector4( result );
     }
     
-    public float[] getDataArray()
+    public double[] getDataArray()
     {
         return data;
     }
@@ -191,14 +191,18 @@ public final class Vector4
         return offset;
     }    
     
-    public Vector4 multiply(float value) 
+    public Vector4 straightMultiply(Vector4 o) {
+    	return new Vector4( this.x() * o.x() , this.y() * o.y() , this.z() * o.z(), this.w() * o.w() );
+    }
+    
+    public Vector4 multiply(double value) 
     {
         return new Vector4( x()*value , y()*value , z()*value , w() );
     }
     
     public Vector4 normalize() 
     {
-        final float len = length();
+        final double len = length();
         if ( len  == 0 ) {
         	return new Vector4(0,0,0); 
         }
@@ -207,7 +211,7 @@ public final class Vector4
     
     public void normalizeInPlace() 
     {
-        final float len = length();
+        final double len = length();
         if ( len  != 0 && len != 1 ) 
         {
         	this.data[offset] = this.data[offset] / len;
@@ -218,7 +222,7 @@ public final class Vector4
     
     public Vector4 normalizeW() 
     {
-        float w = w();
+        double w = w();
         if ( w != 1.0 ) 
         {
             return new Vector4( x() / w, y() / w , z() / w , 1 );
@@ -228,7 +232,7 @@ public final class Vector4
     
     public void normalizeWInPlace() 
     {
-        float w = w();
+        double w = w();
         if ( w != 1.0 ) 
         {
         	x( x() / w );
@@ -238,50 +242,50 @@ public final class Vector4
     }      
     
     // scalar / dot product
-    public float dotProduct(Vector4 o) 
+    public double dotProduct(Vector4 o) 
     {
         return data[offset]*o.data[o.offset] + data[offset+1]*o.data[o.offset+1]+data[offset+2]*o.data[o.offset+2];
     }
     
-    public float length() 
+    public double length() 
     {
-        return (float) Math.sqrt( x()*x() + y()*y() + z()*z() );   
+        return (double) Math.sqrt( x()*x() + y()*y() + z()*z() );   
     }
     
-    public float magnitude() {
+    public double magnitude() {
         return x()*x() + y() * y() + z() * z();   
     }    
     
-    public float angleInRadians(Vector4 o) {
+    public double angleInRadians(Vector4 o) {
         // => cos
-        final float cosine = dotProduct( o ) / ( length() * o.length() );
-        return (float) Math.acos( cosine );
+        final double cosine = dotProduct( o ) / ( length() * o.length() );
+        return (double) Math.acos( cosine );
     }
     
-    public float angleInDegrees(Vector4 o) {
-        final float factor = (float) (180.0f / Math.PI);
+    public double angleInDegrees(Vector4 o) {
+        final double factor = (double) (180.0f / Math.PI);
         return angleInRadians(o)*factor;
     }        
     
     public Vector4 crossProduct(Vector4 other) 
     {
-        final float[] thisData = this.data;
+        final double[] thisData = this.data;
         final int thisOffset = this.offset;
         
-        final float[] o = other.data;
+        final double[] o = other.data;
         final int oOffset = other.offset;
         
-        final float x1 = thisData[thisOffset];
-        final float y1 = thisData[thisOffset+1];
-        final float z1 = thisData[thisOffset+2];
+        final double x1 = thisData[thisOffset];
+        final double y1 = thisData[thisOffset+1];
+        final double z1 = thisData[thisOffset+2];
         
-        final float x2 = o[ oOffset ];
-        final float y2 = o[ oOffset+1 ];
-        final float z2 = o[ oOffset+2 ];
+        final double x2 = o[ oOffset ];
+        final double y2 = o[ oOffset+1 ];
+        final double z2 = o[ oOffset+2 ];
         
-        float newX = y1 * z2 - y2 * z1;
-        float newY = z1 * x2 - z2 * x1;
-        float newZ = x1 * y2 - x2 * y1;
+        double newX = y1 * z2 - y2 * z1;
+        double newY = z1 * x2 - z2 * x1;
+        double newZ = x1 * y2 - x2 * y1;
         
         return new Vector4( newX ,newY,newZ );
     }
@@ -292,7 +296,30 @@ public final class Vector4
         return "("+format( x() ) +","+format( y() ) +","+format( z() )+","+format( w() )+")";
     }
     
-    private static String format(float d) {
+    private static String format(double d) {
         return new DecimalFormat("##0.0###").format( d );
     }
+
+	public Vector4 clamp(double min, double max) 
+	{
+		double newX = x();
+		double newY = y();
+		double newZ = z();
+		if ( newX < min ) {
+			newX = min;
+		} else if ( newX > max ) {
+			newX = max;
+		}
+		if ( newY < min ) {
+			newY = min;
+		} else if ( newY > max ) {
+			newY = max;
+		}
+		if ( newZ < min ) {
+			newZ = min;
+		} else if ( newZ > max ) {
+			newZ = max;
+		}		
+		return new Vector4(newX,newY,newZ);
+	}
 }

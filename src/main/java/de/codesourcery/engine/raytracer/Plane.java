@@ -6,7 +6,13 @@ public class Plane extends Raytracable {
 	public Vector4 pointOnPlane;
 	public Vector4 unitNormalVector; // unit-length normal vector
 	
-	public Plane(Vector4 pointOnPlane, Vector4 normalVector) {
+	public Plane(Vector4 pointOnPlane, Vector4 normalVector) 
+	{
+		super( new Material( 
+				new Vector4(1,1,1), // diffuseColor
+				new Vector4(0,0,0), // ambientColor
+				new Vector4(0,0,0) // specularColor
+				,512) ); // shininess		
 		this.pointOnPlane = pointOnPlane;
 		this.unitNormalVector = normalVector.normalize();
 	}
