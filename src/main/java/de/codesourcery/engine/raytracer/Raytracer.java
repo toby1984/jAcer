@@ -1,17 +1,15 @@
 package de.codesourcery.engine.raytracer;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
 public class Raytracer {
 
 	public Scene scene;
 	
-	private final int LINES_X = 400;
-	private final int LINES_Y = 400;
+	private final int LINES_X = 800;
+	private final int LINES_Y = 800;
 	
 	public Raytracer(Scene scene) 
 	{
@@ -28,8 +26,6 @@ public class Raytracer {
 
 	        double worldX = (point.x - centerX) / scaleX;
 	        double worldY = (centerY - point.y ) / scaleY;
-	        
-	        System.out.println("worldX: "+worldX+" / worldY: "+worldY);
 	        
             // calculate point on view plane
 	        final Vector4 xAxis = scene.camera.xAxis.normalize();
@@ -50,8 +46,6 @@ public class Raytracer {
 	public BufferedImage trace(int imageWidth, int imageHeight) {
 		
 		final BufferedImage image = new BufferedImage(imageWidth, imageHeight , BufferedImage.TYPE_INT_ARGB);
-		final Graphics2D graphics = (Graphics2D) image.getGraphics();
-		
 		final Vector4 eyePosition = scene.camera.eyePosition;
 		
 		final int centerX = imageWidth / 2;
@@ -119,19 +113,12 @@ public class Raytracer {
 			    
 			    // cast ray from camera position through view plane
 				final Ray ray = new Ray( eyePosition , pointOnViewPlane.minus( eyePosition ) );
-				
-				// TODO: Performance - intersection ray <-> plane could use pre-calculated values !!
-				final double tStart;
-				try {
-				    tStart = viewPlane.intersect( ray ).solutions[0];
-				} catch(NullPointerException e) {
-				    throw new RuntimeException("NO intersection "+ray+" <-> "+viewPlane+" ??\n pointOnViewPlane: "+pointOnViewPlane);
-				}
+				final double tStart  = viewPlane.intersect( ray ).solutions[0];
 				
 				final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
 				if ( intersection != null ) 
 				{
-					final Vector4 color = calculateColorAt(intersection);
+					final Vector4 color = calculateColorAt(ray,intersection);
 					
 					final int r = (int) (color.r() * 255.0);
 					final int g = (int) (color.g() * 255.0);
@@ -140,24 +127,19 @@ public class Raytracer {
 					final int imageX = (int) (centerX + scaleX * viewX);
 					final int imageY = (int) (centerY - scaleY * viewY);
 					
-					Color col = new Color(0xff000000 | r <<16 | g << 8 | b ,true );
-					graphics.setColor(col);
-                    graphics.fillRect( imageX ,imageY , 1,1);
-//	                graphics.fillRect( imageX ,imageY , (int) Math.ceil(scaleX),(int) Math.ceil(scaleY));
-				} else {
-				    System.out.println("No intersection.");
+					image.setRGB( imageX ,imageY , 0xff000000 | r <<16 | g << 8 | b );
 				}
 			}
 		}
 		return image;
 	}
 
-    public Vector4 calculateColorAt(final IntersectionInfo intersection)
+    public Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection)
     {
         final Vector4 normalAtIntersection = intersection.normalAtIntersection();
         final Vector4 intersectionPoint = intersection.nearestIntersectionPoint;
         
-        final Material objMaterial = intersection.object.material;
+        final Material material = intersection.object.material;
         
         Vector4 sumDiff=new Vector4(0,0,0);
         Vector4 sumSpec=new Vector4(0,0,0);
@@ -169,32 +151,49 @@ public class Raytracer {
             final Vector4 vectorToIntersection = intersectionPoint.minus( light.position );
         	final Ray rayFromLight = new Ray( light.position , vectorToIntersection );
         	
+        	final double solutionAtIntersection = rayFromLight.solutionAt( intersectionPoint ) - 0.001;
         	// check whether ray cast to light source does not pass through any other objects
         	// BEFORE hitting the light
-        	IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0.01 );
-        	if (  occluder == null ) 
+        	IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0 );
+        	if (  occluder == null ||  occluder.solutions[0] > solutionAtIntersection ) 
         	{
         		// calculate diffuse color
                 final Vector4 vectorToLight = light.position.minus( intersectionPoint ).normalize();
         		double dotProduct = Math.max( 0 , normalAtIntersection.dotProduct( vectorToLight ) );
-        		Vector4 diffuseColor = objMaterial.diffuseColor.straightMultiply( light.diffuseColor ).multiply( dotProduct );
+        		Vector4 diffuseColor = material.diffuseColor.straightMultiply( light.diffuseColor ).multiply( dotProduct );
         		
         		// specular color
-        		Vector4 reflected = Raytracable.reflect( rayFromLight.v , normalAtIntersection );
+        		Vector4 reflected = Raytracable.reflect( rayFromLight.direction , normalAtIntersection );
         		double eyeReflectionAngle = Math.max( 0 , normalAtIntersection.dotProduct( reflected ) );
-        		double fspec = Math.pow( eyeReflectionAngle , objMaterial.shininess );
+        		double fspec = Math.pow( eyeReflectionAngle , material.shininess );
         		
-        		Vector4 specularColor = light.specularColor.straightMultiply( objMaterial.specularColor ).multiply( fspec );
+        		Vector4 specularColor = light.specularColor.straightMultiply( material.specularColor ).multiply( fspec );
 
-        		sumDiff = sumDiff.plus( diffuseColor ).clamp(0.0d,1.0d);
-        		sumSpec = sumSpec.plus( specularColor ).clamp(0,1);
+        		sumDiff = sumDiff.plus( diffuseColor );
+        		sumSpec = sumSpec.plus( specularColor );
         		lsCount++;
         	} 
         }
+        
+        Vector4 finalColor;
         if ( lsCount == 0 ) {
-            return new Vector4(1,1,1);
+            finalColor = scene.ambientColor;
+        } else {
+        	finalColor= scene.ambientColor.plus(sumDiff ).plus(sumSpec);
         }
-        Vector4 finalColor= scene.ambientColor.plus(sumDiff).plus(sumSpec).clamp(0, 1);
-        return finalColor;
+
+        // handle reflection
+        if ( material.reflectivity != 0 && incomingRay.bounceCount < 2 ) 
+        {
+        	// calculate reflected ray
+        	final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
+        	final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
+        	final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
+        	if ( hit != null ) {
+        		Vector4 refColor = calculateColorAt( ray , hit );
+        		finalColor = finalColor.multiply( 1 - material.reflectivity ).plus( refColor.multiply( material.reflectivity ) );
+        	}
+        }
+        return finalColor.clamp(0,1);
     }
 }

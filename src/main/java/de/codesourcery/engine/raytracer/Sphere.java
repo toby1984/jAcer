@@ -6,6 +6,13 @@ public class Sphere extends Raytracable {
 	public Vector4 center;
 	public double radius;
 	
+	public Sphere(String name,Material material,Vector4 center,double radius) 
+	{
+	    super(name,material);
+		this.center = center;
+		this.radius = radius;
+	}	
+	
 	public Sphere(String name,Vector4 center,double radius) 
 	{
 	    super(name);
@@ -19,9 +26,9 @@ public class Sphere extends Raytracable {
 		final Ray ray = inputRay.transform( center );
 		
 		// intersection with sphere at center (0,0,0)
-		double A = ray.v.magnitude(); // v^2
-		double B = 2*ray.u.dotProduct( ray.v );
-		double C = ray.u.magnitude() - radius*radius; // u^2 - 1
+		double A = ray.direction.magnitude(); // v^2
+		double B = 2*ray.point.dotProduct( ray.direction );
+		double C = ray.point.magnitude() - radius*radius; // u^2 - 1
 		
 		double Bsquared = B*B;
 		double ACtimes4 = 4*A*C;

@@ -65,6 +65,17 @@ public final class Vector4
         this.w = data[offset+3];
     }
     
+    public Vector4 flip() {
+    	return new Vector4(-x,-y,-z,w);
+    }
+    
+    public void flipInPlace() 
+    {
+    	this.x = -x;
+    	this.y = -y;
+    	this.z = -z;
+    }    
+    
     public boolean isEquals(Vector4 other) 
     {
         return this.x == other.x &&

@@ -27,7 +27,7 @@ public abstract class Raytracable {
 	public final Ray reflect(Ray incomingRay , Vector4 pointOnSurface) 
 	{
 		final Vector4 normalVector = normalVectorAt( pointOnSurface );
-		final Vector4 newDirection = reflect( incomingRay.v , normalVector );
+		final Vector4 newDirection = reflect( incomingRay.direction , normalVector );
 		return new Ray( pointOnSurface , newDirection , incomingRay.bounceCount+1 );
 	}
 	

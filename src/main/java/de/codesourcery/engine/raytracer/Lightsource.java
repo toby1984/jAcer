@@ -35,4 +35,9 @@ public abstract class Lightsource {
 		this.ambientColor = ambientColor;
 		this.specularColor = specularColor;
 	}
+	
+	@Override
+	public String toString() {
+		return "PointLightsource[ "+position+" ]";
+	}
 }

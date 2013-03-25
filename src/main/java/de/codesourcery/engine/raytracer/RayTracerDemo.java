@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -23,18 +25,22 @@ public class RayTracerDemo {
 		camera.setEyePosition( eyePosition , 0 , -60 );
 
 		final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
-		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    0 , -200 ) , 100 );		
-		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -400 , -150 ) , 100 );	
+		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    0 , -200 ) , 100 );	
+		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -400 , -150 ) , 100 );
 		
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
 		Plane p2 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
+		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 
+		sphere3.material.reflectivity=1.0;		
+		
 		final Scene scene = new Scene(camera);
-//		scene.addObject( sphere1 );
-//		scene.addObject( sphere2 );
-//		scene.addObject( sphere3 );	
+		scene.addObject( sphere1 );
+		scene.addObject( sphere2 );
+		scene.addObject( sphere3 );	
 		scene.addObject( p1 );
 		scene.addObject( p2 );
+		scene.addObject( p3 );		
 		
 //		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
 		scene.addObject( new PointLightsource( new Vector4( 0,150,0 ) , Color.RED) );
@@ -42,89 +48,7 @@ public class RayTracerDemo {
 
 		final Raytracer tracer = new Raytracer( scene );
 
-		final JPanel panel = new JPanel() {
-
-			private final Object LOCK = new Object();
-
-			private Thread tracerThread = null;
-			private BufferedImage image = null; 
-
-			{
-		        addMouseListener( new MouseAdapter() {
-		            @Override
-		            public void mouseClicked(MouseEvent e)
-		            {
-		                
-		                if ( e.getButton() == MouseEvent.BUTTON1 ) 
-		                {
-		                    Point point = e.getPoint();
-		                    System.out.println("Mouse clicked at: "+point);
-		                    System.out.print("Point on view plane: ");
-		                    System.out.println("CLICKED: "+tracer.getObjectAt( getWidth() , getHeight() , point));
-		                }
-		            }
-		        });			    
-			}
-			private void trace(final int w,final int h) 
-			{
-				synchronized( LOCK ) 
-				{
-					if ( tracerThread == null || ! tracerThread.isAlive() ) 
-					{
-						final JPanel outer = this;
-						tracerThread = new Thread() 
-						{
-							public void run() 
-							{
-								System.out.println("Tracing "+w+" x "+h);	
-								long time = -System.currentTimeMillis();
-								final BufferedImage newImage = tracer.trace( w , h );
-								time += System.currentTimeMillis();
-								System.out.println("Finished tracing "+w+" x "+h+" [ "+time+" millis ]");
-								SwingUtilities.invokeLater( new Runnable() 
-								{
-									public void run() 
-									{
-										synchronized( LOCK ) 
-										{
-											image = newImage;
-										}
-										outer.repaint();										
-									};
-								});
-							}
-						};
-
-						tracerThread.start();
-					}
-				}
-			}
-			@Override
-			public void paint(Graphics g) 
-			{
-				super.paint(g);
-				
-				final int w = getWidth();
-				final int h = getHeight();
-
-				final BufferedImage img;
-				synchronized( LOCK ) 
-				{
-					img = image;
-				}
-				
-				if ( img != null ) 
-				{
-					g.drawImage( img , 0 , 0 , w , h , null );
-					if ( img.getWidth() != w || img.getHeight() != h ) 
-					{
-						trace(w,h);
-					}
-				} else {
-					trace(w,h);
-				}
-			}
-		};
+		final RenderPanel panel = new RenderPanel(tracer);
 
 		panel.setMinimumSize( new Dimension(300,300) );
 		panel.setPreferredSize( new Dimension(300,300) );		
@@ -144,5 +68,142 @@ public class RayTracerDemo {
 		frame.pack();
 		frame.setVisible( true );
 		frame.repaint();
+		
+		final float increment = 10;
+		
+		frame.addKeyListener( new KeyAdapter() 
+		{
+			@Override
+			public void keyPressed(KeyEvent e) 
+			{
+				switch(e.getKeyCode() ) 
+				{
+					case KeyEvent.VK_PLUS:
+						camera.moveUp( increment );
+						break;
+					case KeyEvent.VK_MINUS:
+						camera.moveDown( increment );
+						break;
+					case KeyEvent.VK_W:
+						camera.moveForward(increment);
+						break;
+					case KeyEvent.VK_S:
+						camera.moveBackward(increment);
+						break;
+					case KeyEvent.VK_A:
+						camera.strafeLeft(increment);
+						break;
+					case KeyEvent.VK_D:
+						camera.strafeRight(increment);
+						break;
+					case KeyEvent.VK_Q:
+						camera.rotate(-1,0);
+						break;
+					case KeyEvent.VK_E:
+						camera.rotate(1,0);
+						break;						
+					default:
+						return;
+				}
+				panel.recalculate();				
+			}
+		});
+	}
+	
+	protected static final class RenderPanel extends JPanel {
+
+		private final Object LOCK = new Object();
+		
+		public final Raytracer tracer;
+		
+		public RenderPanel(Raytracer tracer) {
+			this.tracer = tracer;
+		}
+
+		private Thread tracerThread = null;
+		private BufferedImage image = null; 
+
+		{
+	        addMouseListener( new MouseAdapter() {
+	            @Override
+	            public void mouseClicked(MouseEvent e)
+	            {
+	                
+	                if ( e.getButton() == MouseEvent.BUTTON1 ) 
+	                {
+	                    Point point = e.getPoint();
+	                    System.out.println("Mouse clicked at: "+point);
+	                    System.out.print("Point on view plane: ");
+	                    System.out.println("CLICKED: "+tracer.getObjectAt( getWidth() , getHeight() , point));
+	                }
+	            }
+	        });			    
+		}
+		
+		public void recalculate() {
+			trace(getWidth() , getHeight() );
+			repaint();
+		}
+		
+		private void trace(final int w,final int h) 
+		{
+			synchronized( LOCK ) 
+			{
+				if ( tracerThread == null || ! tracerThread.isAlive() ) 
+				{
+					final JPanel outer = this;
+					tracerThread = new Thread() 
+					{
+						public void run() 
+						{
+							System.out.println("Tracing "+w+" x "+h);	
+							long time = -System.currentTimeMillis();
+							final BufferedImage newImage = tracer.trace( w , h );
+							time += System.currentTimeMillis();
+							System.out.println("Finished tracing "+w+" x "+h+" [ "+time+" millis ]");
+							SwingUtilities.invokeLater( new Runnable() 
+							{
+								public void run() 
+								{
+									synchronized( LOCK ) 
+									{
+										image = newImage;
+									}
+									outer.repaint();										
+								};
+							});
+						}
+					};
+
+					tracerThread.start();
+				}
+			}
+		}
+		@Override
+		public void paint(Graphics g) 
+		{
+			super.paint(g);
+			
+			final int w = getWidth();
+			final int h = getHeight();
+
+			final BufferedImage img;
+			synchronized( LOCK ) 
+			{
+				img = image;
+			}
+			
+			if ( img != null ) 
+			{
+				g.drawImage( img , 0 , 0 , w , h , null );
+				if ( img.getWidth() != w || img.getHeight() != h ) 
+				{
+					trace(w,h);
+				}
+			} else {
+				trace(w,h);
+			}
+		}
+			
 	}
 }

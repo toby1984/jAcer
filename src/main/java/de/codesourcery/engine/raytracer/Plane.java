@@ -6,12 +6,13 @@ public class Plane extends Raytracable {
 	public Vector4 pointOnPlane;
 	public Vector4 unitNormalVector; // unit-length normal vector
 	
-	private static final double EPSILON = 0.00000001;
+	private static final double EPSILON = 0.000001;
 	
 	public Plane(String name,Vector4 pointOnPlane, Vector4 normalVector) 
 	{
 		super( name, new Material( 
 				new Vector4(1,1,1), // diffuseColor
+				0, // reflectivity
 				new Vector4(0,0,0) // specularColor
 				,512) ); // shininess		
 		this.pointOnPlane = pointOnPlane;
@@ -26,12 +27,12 @@ public class Plane extends Raytracable {
 	@Override
 	public IntersectionInfo intersect(Ray ray) 
 	{
-		final double denominator = ray.v.dotProduct( unitNormalVector );
+		final double denominator = ray.direction.dotProduct( unitNormalVector );
 		if ( denominator > -EPSILON && denominator < EPSILON ) 
 		{
 			return null;
 		}
-		final double nominator = pointOnPlane.minus( ray.u ).dotProduct( unitNormalVector );
+		final double nominator = pointOnPlane.minus( ray.point ).dotProduct( unitNormalVector );
 		final double solution = nominator / denominator;
 		return new IntersectionInfo( this ).addSolution( solution );
 	}

@@ -6,14 +6,20 @@ public class Material {
 	public Vector4 specularColor;
 	public double reflectivity;
 	public double shininess;
-	
+
+	public Material() 
+	{
+		this( new Vector4(1,1,1), new Vector4(1,1,1)); 
+	}
+
 	public Material(Vector4 diffuseColor,Vector4 specularColor) 
 	{
-		this(diffuseColor , specularColor , 128 );
+		this(diffuseColor , 0,specularColor , 128 );
 	}
-	
-	public Material(Vector4 diffuseColor, Vector4 specularColor,float shininess) 
+
+	public Material(Vector4 diffuseColor, double reflectivity,Vector4 specularColor,double shininess) 
 	{
+		this.reflectivity = reflectivity;
 		this.diffuseColor = diffuseColor;
 		this.specularColor = specularColor;
 		this.shininess = shininess;
