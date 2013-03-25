@@ -29,10 +29,13 @@ public class RayTracerDemo {
 		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -400 , -150 ) , 100 );
 		
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
-		Plane p2 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
+//		Plane p2 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
+		AxisAlignedCube p2 = new AxisAlignedCube( "vertical plane", new Vector4( 200,    0, -600 ) , 100,200,300 );
+		p2.material.reflectivity(1.0);
+		
 		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 
-		sphere3.material.reflectivity=1.0;		
+		sphere3.material.reflectivity(1.0);		
 		
 		final Scene scene = new Scene(camera);
 		scene.addObject( sphere1 );
@@ -69,7 +72,7 @@ public class RayTracerDemo {
 		frame.setVisible( true );
 		frame.repaint();
 		
-		final float increment = 10;
+		final float increment = 50;
 		
 		frame.addKeyListener( new KeyAdapter() 
 		{
@@ -101,7 +104,13 @@ public class RayTracerDemo {
 						break;
 					case KeyEvent.VK_E:
 						camera.rotate(1,0);
-						break;						
+						break;	
+					case KeyEvent.VK_Y:
+						camera.rotate(0,-1);
+						break;
+					case KeyEvent.VK_C:
+						camera.rotate(0,1);
+						break;							
 					default:
 						return;
 				}

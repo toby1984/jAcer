@@ -183,7 +183,7 @@ public class Raytracer {
         }
 
         // handle reflection
-        if ( material.reflectivity != 0 && incomingRay.bounceCount < 2 ) 
+        if ( material.reflectivity() != 0 && incomingRay.bounceCount < 2 ) 
         {
         	// calculate reflected ray
         	final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
@@ -191,7 +191,7 @@ public class Raytracer {
         	final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
         	if ( hit != null ) {
         		Vector4 refColor = calculateColorAt( ray , hit );
-        		finalColor = finalColor.multiply( 1 - material.reflectivity ).plus( refColor.multiply( material.reflectivity ) );
+        		finalColor = finalColor.multiply( 1 - material.reflectivity() ).plus( refColor.multiply( material.reflectivity() ) );
         	}
         }
         return finalColor.clamp(0,1);

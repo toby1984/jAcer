@@ -4,9 +4,17 @@ public class Material {
 
 	public Vector4 diffuseColor;
 	public Vector4 specularColor;
-	public double reflectivity;
+	private double reflectivity;
 	public double shininess;
 
+	public double reflectivity() {
+		return reflectivity;
+	}
+	
+	public void reflectivity(double ref) {
+		this.reflectivity = ref;
+	}
+	
 	public Material() 
 	{
 		this( new Vector4(1,1,1), new Vector4(1,1,1)); 
