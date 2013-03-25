@@ -6,33 +6,34 @@ import java.awt.image.BufferedImage;
 
 public class Raytracer {
 
-	public  Vector4 eyePosition; // eye position relative to view plane at (0,0,0)
 	public Scene scene;
 	
-	public Raytracer(Vector4 eyePosition,Scene scene) 
+	public Raytracer(Scene scene) 
 	{
-		this.eyePosition = eyePosition;
 		this.scene = scene;
 	}
 	
-	public BufferedImage trace(int w, int h) {
+	public BufferedImage trace(int imageWidth, int imageHeight) {
 		
-		final BufferedImage image = new BufferedImage(w, h , BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage image = new BufferedImage(imageWidth, imageHeight , BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D graphics = (Graphics2D) image.getGraphics();
 		
-		final int centerX = w / 2;
-		final int centerY = h / 2;
+		final Vector4 eyePosition = scene.camera.position;
+		
+		final int centerX = imageWidth / 2;
+		final int centerY = imageHeight / 2;
 		
 		// calculate view plane
-		final int max = ((w > h ? w : h)/2)+1;
-		final int x1 = -max;
-		final int x2 = max;
+	    final double max = (imageWidth > imageHeight ? imageWidth : imageHeight);
+		         
+		final double x1 = -(max/2.0);
+		final double x2 = max/2.0;
 		
-		final int y1 = -max;
-		final int y2 = max;
+		final double y1 = -(max/2.0d);
+		final double y2 = max/2.0;
 		
-		final double scaleX = w / (double) max/2.0;
-		final double scaleY = h / (double) max/2.0;
+		final double scaleX = imageWidth / max;
+		final double scaleY = imageHeight / max;
 		
 		final Vector4 p0 = new Vector4(0,0,0);
 		final Vector4 p1 = new Vector4(-5,0,0);
@@ -41,12 +42,12 @@ public class Raytracer {
 		final Vector4 n1 = p1.minus( p0 );
 		final Vector4 n2 = p2.minus( p0 );
 		
-		final Vector4 viewPlaneNormalVector = n1.crossProduct( n2 ); // xAxis X yAxis
-		final Plane viewPlane = new Plane( new Vector4(0,0,0 ) , viewPlaneNormalVector );
+		final Vector4 viewPlaneNormalVector = n1.crossProduct( n2 ); // (xAxis) x (yAxis)
+		final Plane viewPlane = new Plane( new Vector4( 0,0,0 ) , viewPlaneNormalVector );
 		
-		for ( int x = x1 ; x < x2 ; x+=1) 
+		for ( double x = x1 ; x < x2 ; x+=1) 
 		{
-			for ( int y = y1 ; y < y2 ; y+=1 ) 
+			for ( double y = y1 ; y < y2 ; y+=1 ) 
 			{
 			    // cast ray from camera position through view plane
 				final Vector4 pointOnViewPlane = new Vector4( x , y , 0 );
@@ -59,6 +60,8 @@ public class Raytracer {
 					final Vector4 sum = calculateColorAt(intersection);
 					graphics.setColor( new Color((float) sum.x() , (float) sum.y(),(float) sum.z() ) );
 					graphics.drawRect( centerX + (int) Math.ceil( x*scaleX ) , centerY - (int) Math.ceil( y * scaleY ) , 1 ,1 );
+				} else {
+//				    System.out.println("No intersection: "+ray);
 				}
 			}
 		}

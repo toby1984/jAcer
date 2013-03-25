@@ -8,7 +8,7 @@ public class Scene {
 	public final List<Raytracable> objects = new ArrayList<>();
 	public final List<Lightsource> lightsources = new ArrayList<>();
 
-	public static final double EPSILON = 0.0001;
+	public static final double EPSILON = 0.001;
 	
 	public Vector4 ambientColor=new Vector4(0,0,0);
 	
@@ -41,8 +41,7 @@ public class Scene {
 				for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
 				{
 					final double solution = intersection.solutions[i];
-					final double delta = solution - tStart;
-					if ( delta > EPSILON ) 
+					if ( solution > tStart ) 
 					{
 						// only add intersection if we didn't find any so far OR
 						// if this intersection is closer to tStart than the one we already found

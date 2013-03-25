@@ -253,20 +253,17 @@ public final class Matrix
             final double[] result = new double[4];
             final double[] thisData = this.data;
 
-            final int offset = vector4.getDataOffset(); 
-            final double[] data = vector4.getDataArray();
+            result[0] = this.data[ 0 ] * vector4.x + thisData[ 0 + SIZE ] * vector4.y +  
+                    thisData[ 0 + SIZE*2 ] * vector4.z + thisData[ 0 + SIZE*3 ] * vector4.w;
 
-            result[0] = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
-                    thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
+            result[ 1 ] = thisData[ 1 ] * vector4.x + thisData[ 1 + SIZE ] * vector4.y + thisData[ 1 + SIZE*2 ] * vector4.z+
+                    thisData[ 1 + SIZE*3 ] * vector4.w;
 
-            result[ 1 ] = thisData[ 1 ] * data[ offset ] + thisData[ 1 + SIZE ] * data[ offset+1 ] + thisData[ 1 + SIZE*2 ] * data[ offset+2 ]+
-                    thisData[ 1 + SIZE*3 ] * data[ offset+3 ];
+            result[ 2 ] = thisData[ 2 ] * vector4.x + thisData[ 2 + SIZE ] * vector4.y+
+                    thisData[ 2 + SIZE*2 ] * vector4.z + thisData[ 2 + SIZE*3 ] * vector4.w;
 
-            result[ 2 ] = thisData[ 2 ] * data[ offset ] + thisData[ 2 + SIZE ] * data[ offset+1 ]+
-                    thisData[ 2 + SIZE*2 ] * data[ offset+2 ] + thisData[ 2 + SIZE*3 ] * data[ offset+3 ];
-
-            result [ 3] = thisData[ 3 ] * data[ offset+0 ]+ thisData[ 3 + SIZE ] * data[ offset+1 ]+ thisData[ 3 + SIZE*2 ] * data[ offset+2 ]+
-                    thisData[ 3 + SIZE*3 ] * data[ offset+3 ];
+            result [ 3] = thisData[ 3 ] * vector4.x + thisData[ 3 + SIZE ] * vector4.y+ thisData[ 3 + SIZE*2 ] * vector4.z+
+                    thisData[ 3 + SIZE*3 ] * vector4.w;
             
             transformed[i++] = new Vector4( result );
         }
@@ -302,20 +299,17 @@ public final class Matrix
         final double[] result = new double[4];
         final double[] thisData = this.data;
 
-        final int offset = vector4.getDataOffset(); 
-        final double[] data = vector4.getDataArray();
+        result[0] = this.data[ 0 ] * vector4.x + thisData[ 0 + SIZE ] * vector4.y +  
+                thisData[ 0 + SIZE*2 ] * vector4.z + thisData[ 0 + SIZE*3 ] * vector4.w;
 
-        result[0] = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
-                thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
+        result[ 1 ] = thisData[ 1 ] * vector4.x + thisData[ 1 + SIZE ] * vector4.y + thisData[ 1 + SIZE*2 ] * vector4.z+
+                thisData[ 1 + SIZE*3 ] * vector4.w;
 
-        result[ 1 ] = thisData[ 1 ] * data[ offset ] + thisData[ 1 + SIZE ] * data[ offset+1 ] + thisData[ 1 + SIZE*2 ] * data[ offset+2 ]+
-                thisData[ 1 + SIZE*3 ] * data[ offset+3 ];
+        result[ 2 ] = thisData[ 2 ] * vector4.x + thisData[ 2 + SIZE ] * vector4.y+
+                thisData[ 2 + SIZE*2 ] * vector4.z + thisData[ 2 + SIZE*3 ] * vector4.w;
 
-        result[ 2 ] = thisData[ 2 ] * data[ offset ] + thisData[ 2 + SIZE ] * data[ offset+1 ]+
-                thisData[ 2 + SIZE*2 ] * data[ offset+2 ] + thisData[ 2 + SIZE*3 ] * data[ offset+3 ];
-
-        result [ 3] = thisData[ 3 ] * data[ offset+0 ]+ thisData[ 3 + SIZE ] * data[ offset+1 ]+ thisData[ 3 + SIZE*2 ] * data[ offset+2 ]+
-                thisData[ 3 + SIZE*3 ] * data[ offset+3 ];        
+        result [ 3] = thisData[ 3 ] * vector4.x + thisData[ 3 + SIZE ] * vector4.y+ thisData[ 3 + SIZE*2 ] * vector4.z+
+                thisData[ 3 + SIZE*3 ] * vector4.w;        
 
         return new Vector4( result );
     }
@@ -339,25 +333,22 @@ public final class Matrix
     {
         final double[] thisData = this.data;
 
-        final int offset = vector4.getDataOffset(); 
-        final double[] data = vector4.getDataArray();
-        
-        final double x = this.data[ 0 ] * data[ offset ] + thisData[ 0 + SIZE ] * data[ offset+1 ] +  
-                thisData[ 0 + SIZE*2 ] * data[ offset+2 ] + thisData[ 0 + SIZE*3 ] * data[ offset+3 ];
+        final double x = this.data[ 0 ] * vector4.x + thisData[ 0 + SIZE ] * vector4.y +  
+                thisData[ 0 + SIZE*2 ] * vector4.z + thisData[ 0 + SIZE*3 ] * vector4.w;
 
-        final double y = thisData[ 1 ] * data[ offset ] + thisData[ 1 + SIZE ] * data[ offset+1 ] + thisData[ 1 + SIZE*2 ] * data[ offset+2 ]+
-                thisData[ 1 + SIZE*3 ] * data[ offset+3 ];
+        final double y = thisData[ 1 ] * vector4.x + thisData[ 1 + SIZE ] * vector4.y + thisData[ 1 + SIZE*2 ] * vector4.z+
+                thisData[ 1 + SIZE*3 ] * vector4.w;
 
-        final double z = thisData[ 2 ] * data[ offset ] + thisData[ 2 + SIZE ] * data[ offset+1 ]+
-                thisData[ 2 + SIZE*2 ] * data[ offset+2 ] + thisData[ 2 + SIZE*3 ] * data[ offset+3 ];
+        final double z = thisData[ 2 ] * vector4.x + thisData[ 2 + SIZE ] * vector4.y+
+                thisData[ 2 + SIZE*2 ] * vector4.z + thisData[ 2 + SIZE*3 ] * vector4.w;
 
-        final double w = thisData[ 3 ] * data[ offset ]+ thisData[ 3 + SIZE ] * data[ offset+1 ]+ thisData[ 3 + SIZE*2 ] * data[ offset+2 ]+
-                thisData[ 3 + SIZE*3 ] * data[ offset+3 ];        
+        final double w = thisData[ 3 ] * vector4.x+ thisData[ 3 + SIZE ] * vector4.y+ thisData[ 3 + SIZE*2 ] * vector4.z+
+                thisData[ 3 + SIZE*3 ] * vector4.w;        
 
-        data[ offset ] = x;
-        data[ offset + 1 ] = y;
-        data[ offset + 2 ] = z;
-        data[ offset + 3 ] = w;
+        vector4.x = x;
+        vector4.y = y;
+        vector4.z = z;
+        vector4.w = w;
     }    
 
     public Matrix invert() {
@@ -503,19 +494,21 @@ public final class Matrix
 
 	public void setColumns(Vector4 col0, Vector4 col1, Vector4 col2, Vector4 col3) 
 	{
-		int ptr = 0;
-		for (int i = 0 ; i < 4 ; i++ ) {
-			this.data[ ptr++ ] = col0.getDataArray()[ col0.getDataOffset() +i ];
-		}
-		for (int i = 0 ; i < 4 ; i++ ) {
-			this.data[ ptr++ ] = col1.getDataArray()[ col1.getDataOffset() +i ];
-		}
-		for (int i = 0 ; i < 4 ; i++ ) {
-			this.data[ ptr++ ] = col2.getDataArray()[ col2.getDataOffset() +i ];
-		}
-		for (int i = 0 ; i < 4 ; i++ ) {
-			this.data[ ptr++ ] = col3.getDataArray()[ col3.getDataOffset() +i ];
-		}		
+		this.data[ 0 ] = col0.x;
+        this.data[ 1 ] = col0.y;
+        this.data[ 2 ] = col0.z;
+        this.data[ 3 ] = col0.w;
+		this.data[ 4 ] = col1.x;
+		this.data[ 5 ] = col1.y;
+		this.data[ 6 ] = col1.z;
+		this.data[ 7 ] = col1.w;
+        this.data[ 8 ] = col2.x;
+        this.data[ 9 ] = col2.y;
+        this.data[ 10 ] = col2.z;
+        this.data[ 11 ] = col2.w;
+        this.data[ 12 ] = col3.x;
+        this.data[ 13 ] = col3.y;
+        this.data[ 14 ] = col3.z;
+        this.data[ 15 ] = col3.w;        
 	}
-
 }

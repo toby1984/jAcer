@@ -15,51 +15,16 @@ public class RayTracerDemo {
 
 	public static void main(String[] args) {
 
-		final Vector4 eyePosition = new Vector4( 0 , 100 , 700 );
+		final Vector4 eyePosition = new Vector4( 0 , 500 , 500 );
 		final Vector4 viewDirection = new Vector4( 0 , 0 , -1 );
 		final Camera camera = new Camera(eyePosition , viewDirection );
-		
-//		final Vector4 eyePosition = new Vector4( 0 , 0 , 10 );
-//		final Vector4 viewDirection = new Vector4( 0 , 0 , -1 );
-//
-//		// DEBUG
-//		Sphere sphere = new Sphere( Matrix.identity() , 5 );
-//		
-//		final Vector4 p0 = new Vector4(0,0,0);
-//		final Vector4 p1 = new Vector4(0,5,-5);
-//		final Vector4 p2 = new Vector4(-5,0,0);
-//		
-//		final Vector4 viewPlaneNormalVector = p1.minus(p0).crossProduct( p2.minus(p0 ) ).normalize();
-//		final Plane plane = new Plane(p0,viewPlaneNormalVector);
-//		
-//		System.out.println( "Eye position : "+eyePosition);
-//		System.out.println( "Normal vector: "+viewPlaneNormalVector);
-//		
-//		final Ray ray = new Ray( eyePosition, viewDirection );
-//		System.out.println( ray );
-//		System.out.println( sphere);
-//		
-//		final IntersectionInfo intersection = sphere.intersect( ray );
-//		
-//		if ( intersection != null ) 
-//		{
-//			for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
-//			{
-//				System.out.println("Solution: "+intersection.solutions[i]);
-//				System.out.println("Point: "+ray.evaluateAt( intersection.solutions[i] ) );
-//			}
-//		} else {
-//			System.out.println("No intersection.");
-//		}
-//		System.exit(0);
 
 		final Sphere sphere1 = new Sphere( new Vector4( -150 ,0,-100) , 100 );
 		final Sphere sphere2 = new Sphere( new Vector4( 250 , 00 , -200) , 100 );		
 		final Sphere sphere3 = new Sphere( new Vector4( -100 , -400 , -200) , 100 );	
 		
-		Plane p1 = new Plane( new Vector4(0,-500,0 ) , new Vector4(0,100,0) );
+		Plane p1 = new Plane( new Vector4(0,-200,0 ) , new Vector4(0,100,0) );
 		Plane p2 = new Plane( new Vector4(0,0,-700 ) , new Vector4(0,0,100) );
-		Plane p3 = new Plane( new Vector4(-400,0,0 ) , new Vector4(100,0,0) );		
 
 		final Scene scene = new Scene(camera);
 		scene.addObject( sphere1 );
@@ -67,13 +32,12 @@ public class RayTracerDemo {
 		scene.addObject( sphere3 );	
 		scene.addObject( p1 );
 		scene.addObject( p2 );
-//		scene.addObject( p3 );			
 		
 //		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
 		scene.addObject( new PointLightsource( new Vector4( 0,250,0 ) , Color.RED) );
 //		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) );		
 
-		final Raytracer tracer = new Raytracer( eyePosition  , scene );
+		final Raytracer tracer = new Raytracer( scene );
 
 		final JPanel panel = new JPanel() {
 

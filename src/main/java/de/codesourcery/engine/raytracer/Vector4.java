@@ -4,13 +4,17 @@ import java.text.DecimalFormat;
 
 public final class Vector4 
 {
-    private double[] data;
-    private int offset=0;
+    public double x;
+    public double y;
+    public double z;
+    public double w;
     
     public Vector4(Vector4 input) 
     {
-        data = new double[4];
-        input.copyInto( data , 0 );
+        this.x = input.x;
+        this.y = input.y;
+        this.z = input.z;
+        this.w = input.w;
     }
     
     public int toRGB() {
@@ -21,132 +25,148 @@ public final class Vector4
     }
     
     public Vector4() {
-        data = new double[4];
     }
     
     public Vector4(double[] data) {
-        this.data = data;
+        this.x=data[0];
+        this.y=data[1];
+        this.z=data[2];
+        this.w=data[3];
     }    
     
     public void setData(double[] data,int offset) {
-        this.data = data;
-        this.offset = offset;
+        this.x = data[offset];
+        this.y = data[offset+1];
+        this.z = data[offset+2];
+        this.w = data[offset+3];
     }
     
     public void copyFrom(Vector4 other)
     {
-    	final int otherOffset = other.getDataOffset();
-    	final double[] otherData = other.getDataArray();
-    	
-        this.data[offset] = otherData[ otherOffset ];
-        this.data[offset+1] = otherData[ otherOffset+1 ];
-        this.data[offset+2] = otherData[ otherOffset+2 ];
-        this.data[offset+3] = otherData[ otherOffset+3 ];
+        this.x = other.x;
+        this.y = other.y;
+        this.z = other.z;
+        this.w = other.w;
     }    
     
     public void copyInto(double[] array,int startingOffset) 
     {
-        array[startingOffset] = this.data[offset];
-        array[startingOffset+1] = this.data[offset+1];
-        array[startingOffset+2] = this.data[offset+2];
-        array[startingOffset+3] = this.data[offset+3];
+        array[startingOffset] = x;
+        array[startingOffset+1] = y;
+        array[startingOffset+2] = z;
+        array[startingOffset+3] = w;
     }
     
     public Vector4(double[] data,int offset) 
     {
-        this.data = data;
-        this.offset = offset;
+        this.x = data[offset];
+        this.y = data[offset+1];
+        this.z = data[offset+2];
+        this.w = data[offset+3];
     }
     
-    public boolean isEquals(Vector4 other) {
-        return this.x() == other.x() &&
-                this.y() == other.y() &&
-                this.z() == other.z() &&
-                this.w() == other.w();
+    public boolean isEquals(Vector4 other) 
+    {
+        return this.x == other.x &&
+                this.y == other.y &&
+                this.z == other.z &&
+                this.w == other.w;                
     }
     
     public void x(double value) {
-        this.data[ offset ] = value;
+        this.x = value;
     }
     
     public void r(double value) {
-        this.data[ offset ] = value;
+        this.x = value;
     }    
     
     public void y(double value) {
-        this.data[ offset +1 ] = value;        
+        this.y = value;        
     }
     
     public void g(double value) {
-        this.data[ offset +1 ] = value;        
+        this.y = value;
     }    
     
     public void z(double value) {
-        this.data[ offset +2 ] = value;           
+        this.z = value;
     }
     
     public void b(double value) {
-        this.data[ offset +2 ] = value;           
+        this.z = value;        
     }    
     
     public void w(double value) {
-        this.data[ offset + 3 ] = value;  
+        this.w = value;        
     }
     
     public void a(double value) {
-        this.data[ offset + 3 ] = value;  
+        this.w = value;
     }    
     
     public double x() {
-        return this.data[ offset ];
+        return x;
     }
     
     public double r() {
-        return this.data[ offset ];
+        return x;
     }    
     
     public double y() {
-        return this.data[ offset + 1 ];
+        return y;
     }
     
     public double g() {
-        return this.data[ offset + 1 ];
+        return y;
     }    
     
     public double z() {
-        return this.data[ offset + 2 ];
+        return z;
     }
     
     public double b() {
-        return this.data[ offset + 2 ];
+        return z;
     }    
     
     public double w() {
-        return this.data[ offset + 3];
+        return w;
     }
     
     public double a() {
-        return this.data[ offset + 3];
+        return w;
     }    
     
     public Vector4 minus(Vector4 other) 
     {
-        // TODO: Maybe it's faster to use a loop here ? Needs benchmarking
-        return new Vector4( this.x() - other.x() , this.y() - other.y() , this.z() - other.z() , w() );
+        return new Vector4( this.x - other.x , this.y - other.y , this.z - other.z , this.w );
     }
+    
+    public void minusInPlace(Vector4 other) 
+    {
+        this.x = this.x - other.x;
+        this.y = this.y - other.y;
+        this.z = this.z - other.z;
+    }    
     
     public double distanceTo(Vector4 point) 
     {
-    	double x = this.x() - point.x();
-    	double y = this.y() - point.y();
-    	double z = this.z() - point.z();
-    	return (double) Math.sqrt( x*x + y*y + z*z );
+    	double x = this.x - point.x;
+    	double y = this.y - point.y;
+    	double z = this.z - point.z;
+    	return Math.sqrt( x*x + y*y + z*z );
     }
     
     public Vector4 plus(Vector4 other) {
-     // TODO: Maybe it's faster to use a loop here ? Needs benchmarking
-        return new Vector4( this.x() + other.x() , this.y() + other.y() , this.z() + other.z() , w() );
-    }        
+        return new Vector4( this.x + other.x , this.y + other.y , this.z + other.z , w );
+    }     
+    
+    public void plusInPlace(Vector4 other) 
+    {
+        this.x = this.x + other.x;
+        this.y = this.y + other.y;
+        this.z = this.z + other.z;        
+    }     
     
     public Vector4(double x,double y,double z) {
         this(x,y,z,1);
@@ -154,51 +174,43 @@ public final class Vector4
     
     public Vector4(double x,double y,double z,double w) 
     {
-        this.data = new double[] { x , y , z , w };
+        this.x = x;
+        this.y = y;
+        this.z=z;
+        this.w=w;
     }
     
     public Vector4 multiply( Matrix matrix) 
     {
         final double[] result = new double[4];
-        
-        final double[] thisData = this.data;
         final double[] matrixData = matrix.getData();
 
-        final int offset = this.offset;
+        result[0] = x * matrixData[0] + y * matrixData[1]+
+                    z * matrixData[2]+ w * matrixData[3];
         
-        result[0] = thisData[ offset ] * matrixData[0] + thisData[offset+1] * matrixData[1]+
-                    thisData[offset+2] * matrixData[2]+ thisData[offset+3] * matrixData[3];
+        result[1] = x * matrixData[4] + y * matrixData[5] +
+                    z * matrixData[6] + w * matrixData[7];
         
-        result[1] = thisData[ offset ] * matrixData[4] + thisData[offset+1] * matrixData[5] +
-                    thisData[offset+2] * matrixData[6] + thisData[offset+3] * matrixData[7];
+        result[2] = x * matrixData[8] + y * matrixData[9] +
+                    z * matrixData[10] + w * matrixData[11];
         
-        result[2] = thisData[ offset ] * matrixData[8] + thisData[offset+1] * matrixData[9] +
-                    thisData[offset+2] * matrixData[10] + thisData[offset+3] * matrixData[11];
-        
-        result[3] = thisData[ offset ] * matrixData[12] + thisData[offset+1] * matrixData[13] +
-                    thisData[offset+2] * matrixData[14] + thisData[offset+3] * matrixData[15];
+        result[3] = x * matrixData[12] + y * matrixData[13] +
+                    z * matrixData[14] + w * matrixData[15];
         
         return new Vector4( result );
     }
     
-    public double[] getDataArray()
-    {
-        return data;
-    }
-    
-    public int getDataOffset()
-    {
-        return offset;
-    }    
-    
-    public Vector4 straightMultiply(Vector4 o) {
-    	return new Vector4( this.x() * o.x() , this.y() * o.y() , this.z() * o.z(), this.w() * o.w() );
-    }
-    
     public Vector4 multiply(double value) 
     {
-        return new Vector4( x()*value , y()*value , z()*value , w() );
+        return new Vector4( x * value , y * value , z * value , w );
     }
+    
+    public void multiplyInPlace(double value) 
+    {
+        this.x = this.x * value;
+        this.y = this.y * value;
+        this.z = this.z * value;
+    }    
     
     public Vector4 normalize() 
     {
@@ -206,7 +218,7 @@ public final class Vector4
         if ( len  == 0 ) {
         	return new Vector4(0,0,0); 
         }
-        return new Vector4( x() / len , y() / len , z() / len  , w() );
+        return new Vector4( x / len , y / len , z / len  , w );
     }
     
     public void normalizeInPlace() 
@@ -214,79 +226,67 @@ public final class Vector4
         final double len = length();
         if ( len  != 0 && len != 1 ) 
         {
-        	this.data[offset] = this.data[offset] / len;
-        	this.data[offset+1] = this.data[offset+1] / len;
-        	this.data[offset+2] = this.data[offset+2] / len;
+        	this.x = this.x / len;
+        	this.y = this.y / len;
+        	this.z = this.z / len;
         }
     }    
     
     public Vector4 normalizeW() 
     {
-        double w = w();
         if ( w != 1.0 ) 
         {
-            return new Vector4( x() / w, y() / w , z() / w , 1 );
+            return new Vector4( x / w, y / w , z / w , 1 );
         }
         return this;
     }    
     
     public void normalizeWInPlace() 
     {
-        double w = w();
         if ( w != 1.0 ) 
         {
-        	x( x() / w );
-        	y( y() / w );
-        	z( z() / w );
+        	x = x / w ;
+        	y = y / w ;
+        	z = z / w ;
         }
     }      
     
     // scalar / dot product
     public double dotProduct(Vector4 o) 
     {
-        return data[offset]*o.data[o.offset] + data[offset+1]*o.data[o.offset+1]+data[offset+2]*o.data[o.offset+2];
+        return x*o.x + y*o.y + z * o.z;
     }
+    
+    public Vector4 straightMultiply(Vector4 o) 
+    {
+        return new Vector4( this.x * o.x , this.y * o.y , this.z * o.z, this.w * o.w );
+    }    
     
     public double length() 
     {
-        return (double) Math.sqrt( x()*x() + y()*y() + z()*z() );   
+        return Math.sqrt( x*x + y*y + z*z );   
     }
     
     public double magnitude() {
-        return x()*x() + y() * y() + z() * z();   
+        return x*x + y * y + z * z;   
     }    
     
     public double angleInRadians(Vector4 o) {
         // => cos
         final double cosine = dotProduct( o ) / ( length() * o.length() );
-        return (double) Math.acos( cosine );
+        return Math.acos( cosine );
     }
     
     public double angleInDegrees(Vector4 o) {
-        final double factor = (double) (180.0f / Math.PI);
+        final double factor = (180.0d / Math.PI);
         return angleInRadians(o)*factor;
     }        
     
-    public Vector4 crossProduct(Vector4 other) 
+    public Vector4 crossProduct(Vector4 o) 
     {
-        final double[] thisData = this.data;
-        final int thisOffset = this.offset;
-        
-        final double[] o = other.data;
-        final int oOffset = other.offset;
-        
-        final double x1 = thisData[thisOffset];
-        final double y1 = thisData[thisOffset+1];
-        final double z1 = thisData[thisOffset+2];
-        
-        final double x2 = o[ oOffset ];
-        final double y2 = o[ oOffset+1 ];
-        final double z2 = o[ oOffset+2 ];
-        
-        double newX = y1 * z2 - y2 * z1;
-        double newY = z1 * x2 - z2 * x1;
-        double newZ = x1 * y2 - x2 * y1;
-        
+        double newX = y * o.z - o.y * z;
+        double newY = z * o.x - o.z * x;
+        double newZ = x * o.y - o.x * y;
         return new Vector4( newX ,newY,newZ );
     }
     
@@ -302,9 +302,9 @@ public final class Vector4
 
 	public Vector4 clamp(double min, double max) 
 	{
-		double newX = x();
-		double newY = y();
-		double newZ = z();
+		double newX = x;
+		double newY = y;
+		double newZ = z;
 		if ( newX < min ) {
 			newX = min;
 		} else if ( newX > max ) {
