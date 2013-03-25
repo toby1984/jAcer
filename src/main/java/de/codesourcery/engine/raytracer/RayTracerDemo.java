@@ -16,6 +16,8 @@ public class RayTracerDemo {
 	public static void main(String[] args) {
 
 		final Vector4 eyePosition = new Vector4( 0 , 100 , 700 );
+		final Vector4 viewDirection = new Vector4( 0 , 0 , -1 );
+		final Camera camera = new Camera(eyePosition , viewDirection );
 		
 //		final Vector4 eyePosition = new Vector4( 0 , 0 , 10 );
 //		final Vector4 viewDirection = new Vector4( 0 , 0 , -1 );
@@ -59,7 +61,7 @@ public class RayTracerDemo {
 		Plane p2 = new Plane( new Vector4(0,0,-700 ) , new Vector4(0,0,100) );
 		Plane p3 = new Plane( new Vector4(-400,0,0 ) , new Vector4(100,0,0) );		
 
-		final Scene scene = new Scene();
+		final Scene scene = new Scene(camera);
 		scene.addObject( sphere1 );
 		scene.addObject( sphere2 );
 		scene.addObject( sphere3 );	

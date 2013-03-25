@@ -10,7 +10,6 @@ public class Plane extends Raytracable {
 	{
 		super( new Material( 
 				new Vector4(1,1,1), // diffuseColor
-				new Vector4(0,0,0), // ambientColor
 				new Vector4(0,0,0) // specularColor
 				,512) ); // shininess		
 		this.pointOnPlane = pointOnPlane;

@@ -10,6 +10,14 @@ public class Scene {
 
 	public static final double EPSILON = 0.0001;
 	
+	public Vector4 ambientColor=new Vector4(0,0,0);
+	
+	public Camera camera;
+	
+	public Scene(Camera camera) {
+	    this.camera = camera;
+	}
+	
 	public void addObject(Raytracable obj) 
 	{
 		objects.add( obj );
