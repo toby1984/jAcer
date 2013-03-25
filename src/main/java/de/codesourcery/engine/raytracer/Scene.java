@@ -68,7 +68,7 @@ public class Scene {
 	 * @param tStart
 	 * @return
 	 */
-	public boolean hasAnyIntersection(Ray ray,double tStart) 
+	public IntersectionInfo hasAnyIntersection(Ray ray,double tStart) 
 	{
 		for ( Raytracable obj : objects ) 
 		{
@@ -81,11 +81,11 @@ public class Scene {
 					final double delta = solution - tStart;
 					if ( delta > EPSILON ) 
 					{
-						return true;
+						return intersection;
 					}
 				}
 			}
 		}
-		return false;
+		return null;
 	}		
 }

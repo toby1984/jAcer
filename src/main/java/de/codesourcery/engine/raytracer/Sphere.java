@@ -6,8 +6,9 @@ public class Sphere extends Raytracable {
 	public Vector4 center;
 	public double radius;
 	
-	public Sphere(Vector4 center,double radius) 
+	public Sphere(String name,Vector4 center,double radius) 
 	{
+	    super(name);
 		this.center = center;
 		this.radius = radius;
 	}
@@ -53,6 +54,6 @@ public class Sphere extends Raytracable {
 	@Override
 	public String toString() 
 	{
-		return "Sphere[ center: "+center+" , radius: "+radius+"]";
+		return "Sphere[ "+name+" , center: "+center+" , radius: "+radius+"]";
 	}
 }

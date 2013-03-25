@@ -4,7 +4,8 @@ public class Material {
 
 	public Vector4 diffuseColor;
 	public Vector4 specularColor;
-	public float shininess;
+	public double reflectivity;
+	public double shininess;
 	
 	public Material(Vector4 diffuseColor,Vector4 specularColor) 
 	{

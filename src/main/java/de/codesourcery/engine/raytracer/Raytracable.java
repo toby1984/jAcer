@@ -9,14 +9,18 @@ public abstract class Raytracable {
 	
 	public abstract Vector4 normalVectorAt(Vector4 point);
 
-	public Raytracable() {
-		this( new Material( 
+	public final String name;
+	
+	public Raytracable(String name) 
+	{
+		this( name , new Material( 
 				new Vector4(1,1,1), // diffuseColor
 				new Vector4(1,1,1) // specularColor
 				) ); // shininess
 	}
 	
-	public Raytracable(Material material) {
+	public Raytracable(String name,Material material) {
+	    this.name = name;
 		this.material = material;
 	}
 	

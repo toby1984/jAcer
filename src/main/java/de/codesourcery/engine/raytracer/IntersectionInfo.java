@@ -8,7 +8,8 @@ public class IntersectionInfo {
 	public final double[] solutions =new double[5];
 	public Vector4 nearestIntersectionPoint;
 
-	public IntersectionInfo(Raytracable obj) {
+	public IntersectionInfo(Raytracable obj) 
+	{
 		this.object = obj;
 	}
 	
@@ -26,5 +27,11 @@ public class IntersectionInfo {
 	public Vector4 normalAtIntersection() 
 	{
 		return object.normalVectorAt( nearestIntersectionPoint );
+	}
+	
+	@Override
+	public String toString()
+	{
+	    return "Intersection[ obj: "+object+" , solutions: "+solutionCount+" , solution_0: "+solutions[0]+" , solution_1: "+solutions[1]+" ]";
 	}
 }

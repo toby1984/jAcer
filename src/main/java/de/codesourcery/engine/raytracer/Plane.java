@@ -8,14 +8,19 @@ public class Plane extends Raytracable {
 	
 	private static final double EPSILON = 0.00000001;
 	
-	public Plane(Vector4 pointOnPlane, Vector4 normalVector) 
+	public Plane(String name,Vector4 pointOnPlane, Vector4 normalVector) 
 	{
-		super( new Material( 
+		super( name, new Material( 
 				new Vector4(1,1,1), // diffuseColor
 				new Vector4(0,0,0) // specularColor
 				,512) ); // shininess		
 		this.pointOnPlane = pointOnPlane;
 		this.unitNormalVector = normalVector.normalize();
+	}
+	
+	public void setNormalAndPoint(Vector4 normal,Vector4 point) {
+	    this.pointOnPlane = point;
+	    this.unitNormalVector = normal.normalize();
 	}
 
 	@Override
@@ -39,6 +44,6 @@ public class Plane extends Raytracable {
 	@Override
 	public String toString()
 	{
-	    return "Plane[ point: "+pointOnPlane+" , normal: "+unitNormalVector+"]";
+	    return "Plane[ "+name+" , point: "+pointOnPlane+" , normal: "+unitNormalVector+"]";
 	}
 }
