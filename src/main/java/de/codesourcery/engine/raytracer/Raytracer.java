@@ -183,7 +183,7 @@ public class Raytracer {
         }
 
         // handle reflection
-        if ( material.reflectivity() != 0 && incomingRay.bounceCount < 2 ) 
+        if ( material.reflectivity() != 0.0d && incomingRay.bounceCount < 4 ) 
         {
         	// calculate reflected ray
         	final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );

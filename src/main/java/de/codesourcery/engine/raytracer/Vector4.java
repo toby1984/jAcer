@@ -191,6 +191,37 @@ public final class Vector4
         this.w=w;
     }
     
+    public static Vector4 min(Vector4... vectors) 
+    {
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double minZ = Double.POSITIVE_INFINITY;
+        
+        for ( Vector4 v : vectors ) 
+        {
+            
+            minX = Math.min( minX , v.x );
+            minY = Math.min( minY , v.y );
+            minZ = Math.min( minZ , v.z );
+        }
+        return new Vector4(minX,minY,minZ); 
+    }
+    
+    public static Vector4 max(Vector4... vectors) {
+        
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+        double maxZ = Double.NEGATIVE_INFINITY;
+        
+        for ( Vector4 v : vectors ) 
+        {
+            maxX = Math.max(maxX,v.x);
+            maxY = Math.max(maxY,v.y);
+            maxZ = Math.max(maxZ,v.z);
+        }
+        return new Vector4(maxX,maxY,maxZ); 
+    }    
+    
     public Vector4 multiply( Matrix matrix) 
     {
         final double[] result = new double[4];
@@ -332,5 +363,9 @@ public final class Vector4
 			newZ = max;
 		}		
 		return new Vector4(newX,newY,newZ);
+	}
+	
+	public double[] toArray3D() {
+	    return new double[] { x, y, z };
 	}
 }

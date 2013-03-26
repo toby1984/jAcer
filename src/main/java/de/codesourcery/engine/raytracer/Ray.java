@@ -9,14 +9,14 @@ public class Ray
 	
 	public Ray(Vector4 u, Vector4 v) 
 	{
-		this.point = u;
-		this.direction = v.normalize();
+	    this(u,v,0);
 	}
 	
 	public Ray(Vector4 u, Vector4 v,int bounceCount) 
 	{
 		this.point = u;
 		this.direction = v.normalize();
+		this.direction.w(0);
 		this.bounceCount = bounceCount;
 	}	
 	
@@ -44,12 +44,12 @@ public class Ray
 		return 0;
 	}
 	
-	public static void main(String[] args) {
-		Ray ray = new Ray( new Vector4(0,0,0) , new Vector4(1,0,0 ) );
-		
-		Vector4 p = ray.evaluateAt( 1111.2 );
-		System.out.println( ray +" => "+p);
-		System.out.println( "solution: "+ray.solutionAt( p ) );
+	public static void main(String[] args) 
+	{
+		Ray ray = new Ray( new Vector4(0,0,0) , new Vector4(0,0,1 ) );
+        System.out.println( "Input: "+ray);		
+		ray = ray.transform( Matrix.identity() );
+		System.out.println( ray);
 	}
 	
 	public Ray transform(Vector4 vec) 
@@ -59,10 +59,10 @@ public class Ray
 	
 	public Ray transform(Matrix m) 
 	{
-		Vector4 newP0 = m.multiply( point );
-		Vector4 newP1 = m.multiply( point.plus( direction ) );
-		Vector4 newDirection = newP1.minus( newP0 );
-		return new Ray( newP0 , newDirection );
+	    final Vector4 p1 = point.plus( direction );
+	    Vector4 newp0 = point.multiply( m );
+	    Vector4 newp1 = p1.multiply(m);
+		return new Ray( newp0 , newp1.minus(newp0) );
 	}
 	
 	@Override

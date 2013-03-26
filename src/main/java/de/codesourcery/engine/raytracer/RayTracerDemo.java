@@ -20,33 +20,37 @@ public class RayTracerDemo {
 
 	public static void main(String[] args) {
 
-		final Vector4 eyePosition = new Vector4( 0 , 1000 , 2000 );
+		final Vector4 eyePosition = new Vector4( 0 , -300 , 1350 );
 		final Camera camera = new Camera();
-		camera.setEyePosition( eyePosition , 0 , -60 );
+		camera.setEyePosition( eyePosition , 0 , 0 );
 
 		final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
 		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    0 , -200 ) , 100 );	
 		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -400 , -150 ) , 100 );
 		
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
-//		Plane p2 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
-		AxisAlignedCube p2 = new AxisAlignedCube( "vertical plane", new Vector4( 200,    0, -600 ) , 100,200,300 );
-		p2.material.reflectivity(1.0);
+		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
 		
+		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane", new Vector4( 400,  -500, -200 ) , 200,200,200 );
+		cube1.matrix = LinAlgUtils.rotY( 30 );
+		cube1.material.reflectivity(0.5);
+		
+	    sphere3.material.reflectivity(0.5);
+	      
 		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
-
-		sphere3.material.reflectivity(1.0);		
 		
 		final Scene scene = new Scene(camera);
 		scene.addObject( sphere1 );
 		scene.addObject( sphere2 );
 		scene.addObject( sphere3 );	
 		scene.addObject( p1 );
-		scene.addObject( p2 );
 		scene.addObject( p3 );		
+        scene.addObject( p4 );
+        
+        scene.addObject( cube1 );        
 		
-//		scene.addObject( new PointLightsource( new Vector4( 200,250,0 ) , Color.GREEN ) );
-		scene.addObject( new PointLightsource( new Vector4( 0,150,0 ) , Color.RED) );
+//		scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
+		scene.addObject( new PointLightsource( new Vector4( 400, -200, -200 ) , Color.RED) );
 //		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) );		
 
 		final Raytracer tracer = new Raytracer( scene );
@@ -114,6 +118,7 @@ public class RayTracerDemo {
 					default:
 						return;
 				}
+				System.out.println( tracer.scene.camera );
 				panel.recalculate();				
 			}
 		});

@@ -1,6 +1,5 @@
 package de.codesourcery.engine.raytracer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LinAlgUtils
@@ -22,10 +21,10 @@ public class LinAlgUtils
 
 	public static Matrix rotX(double angleInDegrees) 
 	{
-		final double angleInRad = (double) ( angleInDegrees * 0.5f * ( Math.PI / 180.0f ) );
+		final double angleInRad = ( angleInDegrees * 0.5f * ( Math.PI / 180.0f ) );
 
-		final double cos = (double) Math.cos( angleInRad );
-		final double sin = (double) Math.sin( angleInRad );
+		final double cos = Math.cos( angleInRad );
+		final double sin = Math.sin( angleInRad );
 
 		/*
 		 *  0   0    0 0
@@ -87,10 +86,10 @@ public class LinAlgUtils
 
 	public static Matrix rotY(double angleInDegrees) 
 	{
-		final double angleInRad = (double) ( angleInDegrees * 0.5f * ( Math.PI / 180.0f ) );
+		final double angleInRad = ( angleInDegrees * 0.5d * ( Math.PI / 180.0d ) );
 
-		final double cos = (double) Math.cos( angleInRad );
-		final double sin = (double) Math.sin( angleInRad );
+		final double cos = Math.cos( angleInRad );
+		final double sin = Math.sin( angleInRad );
 
 		/*
 		 *  cos 0 sin 0
@@ -98,8 +97,8 @@ public class LinAlgUtils
 		 * -sin 0 cos 0
 		 *    0 0   0 1
 		 */    	
-		Matrix result =
-				createMatrix( vector( cos, 0 , -sin , 0 ) ,
+		Matrix result = createMatrix( 
+				        vector( cos, 0 , -sin , 0 ) ,
 						vector( 0, 1 , 0 , 0 ) , 
 						vector( sin , 0 , cos , 0 ) , 
 						vector( 0,0,0,1 ) );
@@ -108,10 +107,10 @@ public class LinAlgUtils
 
 	public static Matrix rotZ(double angleInDegrees) 
 	{
-		final double angleInRad =  (double)( angleInDegrees * 0.5f * ( Math.PI / 180.0f ) );
+		final double angleInRad = ( angleInDegrees * 0.5f * ( Math.PI / 180.0f ) );
 
-		final double cos = (double) Math.cos( angleInRad );
-		final double sin = (double) Math.sin( angleInRad );
+		final double cos = Math.cos( angleInRad );
+		final double sin = Math.sin( angleInRad );
 
 		/*
 		 *  cos -sin   0 0
@@ -199,7 +198,7 @@ public class LinAlgUtils
 	public static Matrix createOrthoProjection(double field_of_view , double aspect_ratio , double near,double far) 
 	{
 		final double rad = field_of_view * Constants.DEG_TO_RAD;
-		double size = near * (double) Math.tan( rad / 2.0f); 
+		double size = near * Math.tan( rad / 2.0f); 
 
 		double left = -size; // left X
 		double right = size;  // right X
@@ -225,7 +224,7 @@ public class LinAlgUtils
 	{
 		final double rad = field_of_view * Constants.DEG_TO_RAD;
 
-		double size = zNear * (double) Math.tan( rad / 2.0f); 
+		double size = zNear * Math.tan( rad / 2.0f); 
 
 		double xLeft = -size;
 		double xRight = size;
@@ -249,7 +248,7 @@ public class LinAlgUtils
 		double y = rotatePoint.y() + (Math.cos(rotateAngle.x()) * Math.sin(rotateAngle.z()) + Math.sin(rotateAngle.x()) * Math.sin(rotateAngle.y()) * Math.cos(rotateAngle.z())) * d.x() + (Math.cos(rotateAngle.x()) * Math.cos(rotateAngle.z()) - Math.sin(rotateAngle.x()) * Math.sin(rotateAngle.y()) * Math.sin(rotateAngle.z())) * d.y() - Math.sin(rotateAngle.x()) * Math.cos(rotateAngle.y()) * d.z();
 		double z = rotatePoint.z() + (Math.sin(rotateAngle.x()) * Math.sin(rotateAngle.z()) - Math.cos(rotateAngle.x()) * Math.sin(rotateAngle.y()) * Math.cos(rotateAngle.z())) * d.x() + (Math.sin(rotateAngle.x()) * Math.cos(rotateAngle.z()) + Math.cos(rotateAngle.x()) * Math.sin(rotateAngle.y()) * Math.sin(rotateAngle.z())) * d.y() + Math.cos(rotateAngle.x()) * Math.cos(rotateAngle.y()) * d.z();
 
-		return new Vector4((double) x, (double) y , (double) z );
+		return new Vector4( x, y , z );
 	}    
 
 	private static Matrix createPerspective2(double fzNear,double fzFar) 
