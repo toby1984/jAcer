@@ -5,7 +5,15 @@ public abstract class Raytracable {
 
 	public Material material;
 	
-	public Matrix transformation = null;
+	private Matrix transformation = null;
+	
+	public final Matrix transformation() {
+		return transformation;
+	}
+	
+	public void transformation(Matrix m) {
+		transformation = m;
+	}	
 	
 	public abstract IntersectionInfo intersect(Ray ray);
 	

@@ -1,29 +1,46 @@
 package de.codesourcery.engine.raytracer;
 
+import java.util.Vector;
+
 public class AxisAlignedCube extends Raytracable
 {
-    private final Vector4 min;
-    private final Vector4 max;
+    private Vector4 min;
+    private Vector4 max;
 
-    public AxisAlignedCube(String name, double width, double height, double depth)
+    private final double width;
+    private final double height;
+    private final double depth;
+    
+    private final Vector4 center;
+    
+    public AxisAlignedCube(String name, Vector4 center,double width, double height, double depth)
     {
         super(name);
-
+        this.width = width;
+        this.depth = depth;
+        this.height = height;
+        this.center = center;
+        transformation( null );
+    }
+    
+    @Override
+    public void transformation(Matrix m) 
+    {
+    	super.transformation( m );
+    	
         final double halfWidth = width / 2.0d;
         final double halfHeight = height / 2.0d;
         final double halfDepth = depth / 2.0d;
 
-        max = new Vector4( + halfWidth, + halfHeight, + halfDepth); // MAX
-        min = new Vector4( - halfWidth, - halfHeight, - halfDepth); // MIN   
+        max = new Vector4( halfWidth, halfHeight, halfDepth); // MAX
+        min = new Vector4( - halfWidth, - halfHeight, - halfDepth); // MIN
     }
     
     @Override
-    public IntersectionInfo intersect(Ray ray)
+    public IntersectionInfo intersect(Ray inputRay)
     {
-        if ( transformation != null ) 
-        {
-            ray = ray.transform( transformation );
-        }
+    	// translate ray by center
+    	Ray ray = inputRay.transform( center );
         
         // r.dir is unit direction vector of ray
         double dirFracx = 1.0f / ray.direction.x;
@@ -50,15 +67,15 @@ public class AxisAlignedCube extends Raytracable
         {
             return null;
         }
-        return new IntersectionInfo( this ).addSolution( tmin );        
+        
+        final Vector4 point = ray.evaluateAt( tmin ).plus( center ); // reverse translation by center
+       	return new IntersectionInfo( this ).addSolution( inputRay.solutionAt( point ) );
     }
 
     @Override
-    public Vector4 normalVectorAt(Vector4 p)
+    public Vector4 normalVectorAt(Vector4 point)
     {
-//        if ( transformation != null ) {
-//            p = p.multiply( transformation );
-//        }
+    	Vector4 p = point.minus( center );
         final double EPS = 0.001f;
 
         final Vector4 result;
@@ -84,7 +101,6 @@ public class AxisAlignedCube extends Raytracable
         } else {
             throw new RuntimeException("Internal error, point "+p+" is not on "+this);
         }
-//        return result;
-        return transformation == null ? result : transformation.invert().transpose().multiply( result ); 
+        return result;
     }
 }
