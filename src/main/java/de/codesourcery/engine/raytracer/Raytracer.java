@@ -1,8 +1,16 @@
 package de.codesourcery.engine.raytracer;
 
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+import java.util.concurrent.TimeUnit;
 
 public class Raytracer {
 
@@ -11,9 +19,26 @@ public class Raytracer {
 	private final int LINES_X = 800;
 	private final int LINES_Y = 800;
 	
+	private ThreadPoolExecutor threadpool;
+	
 	public Raytracer(Scene scene) 
 	{
 		this.scene = scene;
+		final int cpuCount = Runtime.getRuntime().availableProcessors()+1;
+		
+		final BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(2*cpuCount*cpuCount);
+		
+        final ThreadFactory threadFactory = new ThreadFactory() {
+            
+            @Override
+            public Thread newThread(Runnable r)
+            {
+                final Thread t = new Thread(r);
+                t.setDaemon( true );
+                return t;
+            }
+        };
+        this.threadpool = new ThreadPoolExecutor(cpuCount, cpuCount, 60, TimeUnit.SECONDS, workQueue, threadFactory, new CallerRunsPolicy() );
 	}
 	
 	public IntersectionInfo getObjectAt(int imageWidth,int imageHeight,Point point)
@@ -43,95 +68,158 @@ public class Raytracer {
             return scene.findNearestIntersection(ray , tStart );	        
 	}
 	
-	public BufferedImage trace(int imageWidth, int imageHeight) {
+	public synchronized BufferedImage trace(final int imageWidth, final int imageHeight) {
 		
 		final BufferedImage image = new BufferedImage(imageWidth, imageHeight , BufferedImage.TYPE_INT_ARGB);
-		final Vector4 eyePosition = scene.camera.eyePosition;
-		
-		final int centerX = imageWidth / 2;
-		final int centerY = imageHeight / 2;
-		
-		// calculate view plane
-		final Frustum frustum = scene.camera.frustum;
-
         System.out.println( scene.camera );
-        
-		System.out.println("Near plane: "+scene.camera.frustum.getNearPlane());
 		
-	    System.out.println("Near plane width : "+scene.camera.frustum.getNearPlaneWidth() );
-	    System.out.println("Near plane height: "+scene.camera.frustum.getNearPlaneHeight() );
-	    
-		/* Construct orthonormal basis for view plane with normal vector N:
-		 * 
-		 * - Set the smallest (in absolute value) component of N to zero
-		 * 
-         * - Exchange the other two components of N, and then negate the first one
-         * 
-         *     S = ( 0, -Nz, Ny ), in case Nx is smallest
-         *     
-         * - Normalize vector S
-         *     S = S / |S|
-         *     
-         * - Last vector T is a cross product of R and S then
-         * 
-         *   T = R x S
-		 */
-		final Vector4 xAxis = scene.camera.xAxis.normalize();
-		final Vector4 yAxis = scene.camera.yAxis.normalize();
-		
-		final double x1 = -scene.camera.frustum.getNearPlaneWidth()/2.0;
-		final double y1 = scene.camera.frustum.getNearPlaneHeight()/2.0;
-		
-        final double x2 = scene.camera.frustum.getNearPlaneWidth()/2.0;
-        final double y2 = -scene.camera.frustum.getNearPlaneHeight()/2.0;		
-		
-		final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.multiply(-1).normalize();
-		final Plane viewPlane = new Plane( "viewPlane",frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.multiply(-1) );
-	    System.out.println("View plane: "+viewPlane);
-	    
-	    final double stepX = scene.camera.frustum.getNearPlaneWidth() / LINES_X;
-	    final double stepY = scene.camera.frustum.getNearPlaneHeight() / LINES_Y;
-	    
-        final double scaleX = imageWidth / scene.camera.frustum.getNearPlaneWidth();
-        final double scaleY = imageHeight / scene.camera.frustum.getNearPlaneHeight();
-
-        System.out.println("scale X: "+scaleX);
-        System.out.println("scale Y: "+scaleY);	   
+		final double x1 = -scene.camera.frustum.getNearPlaneWidth()*0.5;
+        final double y1 = scene.camera.frustum.getNearPlaneHeight()*0.5; 
         
-        System.out.println("X1: "+x1);
-        System.out.println("X2: "+x2);
+        final int cpus = 3; // Runtime.getRuntime().availableProcessors();     
         
-        System.out.println("Y1: "+y1);
-        System.out.println("Y2: "+y2);
+        final double sliceWidth = scene.camera.frustum.getNearPlaneWidth() / cpus;
+        final double sliceHeight = scene.camera.frustum.getNearPlaneHeight() / cpus;        
+		
+        final double stepX = scene.camera.frustum.getNearPlaneWidth() / LINES_X;
+        final double stepY = scene.camera.frustum.getNearPlaneHeight() / LINES_Y;        
         
-		for ( double viewX = x1 ; viewX < x2 ; viewX += stepX ) 
+        final List<Slice> slices = new ArrayList<>();
+		for ( int x = 0 ; x < cpus ; x++ )  
 		{
-			for ( double viewY = y1 ; viewY > y2 ; viewY -= stepY )
+			for ( int y = 0 ; y < cpus ; y++ ) 
 			{
-			    // calculate point on view plane
-			    final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( viewX ) ).plus( yAxis.multiply( viewY ) );
-			    
-			    // cast ray from camera position through view plane
-				final Ray ray = new Ray( eyePosition , pointOnViewPlane.minus( eyePosition ) );
-				final double tStart  = viewPlane.intersect( ray ).solutions[0];
-				
-				final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
-				if ( intersection != null ) 
-				{
-					final Vector4 color = calculateColorAt(ray,intersection);
-					
-					final int r = (int) (color.r() * 255.0);
-					final int g = (int) (color.g() * 255.0);
-					final int b = (int) (color.b() * 255.0);
-					
-					final int imageX = (int) (centerX + scaleX * viewX);
-					final int imageY = (int) (centerY - scaleY * viewY);
-					
-					image.setRGB( imageX ,imageY , 0xff000000 | r <<16 | g << 8 | b );
-				}
+			    final double sliceX1 = x1+x*sliceWidth;
+			    final double sliceY1 = y1-y*sliceHeight;
+                
+			    final double sliceX2 = sliceX1+sliceWidth;
+                final double sliceY2 = sliceY1-sliceHeight;
+                
+                Slice slice = new Slice(sliceX1 , sliceX2 , sliceY1 , sliceY2 , image ,stepX , stepY );
+			    slices.add(  slice );
 			}
+			System.out.println();
 		}
+		
+        final CountDownLatch latch = new CountDownLatch( slices.size() );		
+		for ( final Slice slice : slices ) 
+		{
+            threadpool.execute( new Runnable() {
+
+                @Override
+                public void run()
+                {
+                    try {
+                        trace(slice, imageWidth,imageHeight );
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            });
+		}
+		
+		try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread();
+        }
 		return image;
+	}
+	
+	protected void trace(Slice slice,int imageWidth,int imageHeight) 
+	{
+	    final double x1 = slice.x1;
+	    final double y1 = slice.y1;
+	    
+        final double x2 = slice.x2;
+        final double y2 = slice.y2;	
+        
+        final double stepX = slice.stepX;
+        final double stepY = slice.stepY;
+        
+        final double scaleX = imageWidth / scene.camera.frustum.getNearPlaneWidth();
+        final double scaleY = imageHeight / scene.camera.frustum.getNearPlaneHeight();        
+        
+        final int centerX = imageWidth / 2;
+        final int centerY = imageHeight / 2;       
+        
+        final BufferedImage image = slice.image;
+        
+        final Vector4 xAxis = scene.camera.xAxis.normalize();
+        final Vector4 yAxis = scene.camera.yAxis.normalize();        
+        
+        final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
+        
+        // hint: code assumes that 'pointOnPlane' is the center of the view plane
+        final Plane viewPlane = new Plane( "viewPlane",scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );        
+	    
+        for ( double viewX = x1 ; viewX < x2 ; viewX += stepX ) 
+        {
+            for ( double viewY = y1 ; viewY > y2 ; viewY -= stepY )
+            {
+                // calculate point on view plane
+                final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( viewX ) ).plus( yAxis.multiply( viewY ) );
+                
+                // cast ray from camera position through view plane
+                final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ) );
+                final double tStart  = viewPlane.intersect( ray ).solutions[0];
+                
+                final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
+                if ( intersection != null ) 
+                {
+                    final Vector4 color = calculateColorAt(ray,intersection);
+                    
+                    final int r = (int) (color.r() * 255.0);
+                    final int g = (int) (color.g() * 255.0);
+                    final int b = (int) (color.b() * 255.0);
+                    
+                    final int imageX = (int) (centerX + scaleX * viewX);
+                    final int imageY = (int) (centerY - scaleY * viewY);
+                    
+                    synchronized(image) 
+                    {
+                        image.setRGB( imageX ,imageY , 0xff000000 | r <<16 | g << 8 | b );
+                    }
+                }
+            }
+        }	    
+	}
+	
+	protected static final class Slice {
+	    
+	    public final double x1;
+	    public final double x2;
+	    
+	    public final double y1;
+	    public final double y2;
+
+	    public final double stepX;
+	    public final double stepY;
+	    
+	    public final BufferedImage image;
+
+        public Slice(double x1, double x2, double y1, double y2, BufferedImage image,double stepX,double stepY)
+        {
+            this.x1 = x1;
+            this.x2 = x2;
+            
+            this.y1 = y1;
+            this.y2 = y2;
+
+            this.stepX = stepX;
+            this.stepY = stepY;
+            
+            this.image = image;            
+        }
+
+        @Override
+        public String toString()
+        {
+            return "Slice [x1=" + x1 + ", x2=" + x2 + ", y1=" + y1 + ", y2=" + y2 + ", stepX=" + stepX + ", stepY="
+                    + stepY + "]";
+        }
+        
+        
 	}
 
     public Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection)

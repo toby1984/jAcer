@@ -9,14 +9,14 @@ public final class Vector4
     public double z;
     public double w;
     
-    public static final Vector4 UP = new Vector4(0,1,0); // +Y
-    public static final Vector4 DOWN = new Vector4(0,-1,0); // -Y
+    public static final Vector4 UP =        new Vector4( 0, 1, 0); // +Y
+    public static final Vector4 DOWN =      new Vector4( 0,-1, 0); // -Y
     
-    public static final Vector4 LEFT = new Vector4(-1,0,0); // -X
-    public static final Vector4 RIGHT = new Vector4(1,0,0); // +X
+    public static final Vector4 LEFT =      new Vector4(-1, 0, 0); // -X
+    public static final Vector4 RIGHT =     new Vector4( 1, 0, 0); // +X
     
-    public static final Vector4 FORWARDS = new Vector4(0,0,-1); // -Z
-    public static final Vector4 BACKWARDS = new Vector4(0,0,1); // +Z      
+    public static final Vector4 INTO_VIEWPLANE =  new Vector4( 0, 0,-1); // -Z
+    public static final Vector4 OUTOF_VIEWPLANE = new Vector4( 0, 0,1); // +Z      
     
     public Vector4(Vector4 input) 
     {

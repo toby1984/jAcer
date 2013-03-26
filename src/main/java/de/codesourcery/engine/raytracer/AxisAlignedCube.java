@@ -2,36 +2,29 @@ package de.codesourcery.engine.raytracer;
 
 public class AxisAlignedCube extends Raytracable
 {
-    public Vector4 center;
-
-    private final double[] minArray;
-    private final double[] maxArray;
-    
     private final Vector4 min;
     private final Vector4 max;
 
-    public AxisAlignedCube(String name, Vector4 center, double width, double height, double depth)
+    public AxisAlignedCube(String name, double width, double height, double depth)
     {
         super(name);
-        this.center = center;
 
-        final double halfWidth = width / 2;
-        final double halfHeight = height / 2;
-        final double halfDepth = depth / 2;
+        final double halfWidth = width / 2.0d;
+        final double halfHeight = height / 2.0d;
+        final double halfDepth = depth / 2.0d;
 
-        max = new Vector4(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth); // MAX
-        min = new Vector4(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth); // MIN   
-
-//        minArray = min.toArray3D();
-//        maxArray = max.toArray3D();
-        
-        maxArray = max.toArray3D();
-        minArray = min.toArray3D();        
+        max = new Vector4( + halfWidth, + halfHeight, + halfDepth); // MAX
+        min = new Vector4( - halfWidth, - halfHeight, - halfDepth); // MIN   
     }
     
     @Override
     public IntersectionInfo intersect(Ray ray)
     {
+        if ( transformation != null ) 
+        {
+            ray = ray.transform( transformation );
+        }
+        
         // r.dir is unit direction vector of ray
         double dirFracx = 1.0f / ray.direction.x;
         double dirFracy = 1.0f / ray.direction.y;
@@ -41,15 +34,14 @@ public class AxisAlignedCube extends Raytracable
         
         // lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
         // r.org is origin of ray
-        double t1 = (min.x - rayOrigin.x)*dirFracx;
-        double t2 = (max.x - rayOrigin.x)*dirFracx;
-        double t3 = (min.y - rayOrigin.y)*dirFracy;
-        double t4 = (max.y - rayOrigin.y)*dirFracy;
-        double t5 = (min.z - rayOrigin.z)*dirFracz;
-        double t6 = (max.z - rayOrigin.z)*dirFracz;
+        double t1 = (min.x - rayOrigin.x) * dirFracx;
+        double t2 = (max.x - rayOrigin.x) * dirFracx;
+        double t3 = (min.y - rayOrigin.y) * dirFracy;
+        double t4 = (max.y - rayOrigin.y) * dirFracy;
+        double t5 = (min.z - rayOrigin.z) * dirFracz;
+        double t6 = (max.z - rayOrigin.z) * dirFracz;
         
         double tmin = Math.max( Math.max( Math.min( t1, t2) , Math.min(t3, t4) ) , Math.min(t5, t6));
-        
         double tmax = Math.min( Math.min( Math.max( t1, t2)  , Math.max(t3, t4)) , Math.max(t5, t6));
 
         // tmax < 0: ray (line) is intersecting AABB, but whole AABB is behind us
@@ -64,34 +56,35 @@ public class AxisAlignedCube extends Raytracable
     @Override
     public Vector4 normalVectorAt(Vector4 p)
     {
+//        if ( transformation != null ) {
+//            p = p.multiply( transformation );
+//        }
         final double EPS = 0.001f;
 
-        if (Math.abs( p.x - max.x) < EPS) 
+        final Vector4 result;
+        if (Math.abs( p.x - max.x) < EPS) // p.x on max.x plane
         {
-            return Vector4.LEFT;
+            result = Vector4.RIGHT; 
         } 
-        
-        if (Math.abs( p.x - min.x) < EPS) 
+        else if (Math.abs( p.x - min.x) < EPS) // p.x on min.x plane
         {
-            return Vector4.RIGHT; // left side
-        } 
-        
-        if (Math.abs( p.y - max.y) < EPS) 
+            result = Vector4.LEFT; 
+        } else if (Math.abs( p.y - max.y) < EPS) // p.y on max.y plane
         {
-            return Vector4.DOWN;            
-        } 
-        if (Math.abs( p.y - min.y) < EPS) 
+            result = Vector4.UP;
+        } else if (Math.abs( p.y - min.y) < EPS) // p.y on min.y plane
         {
-           return Vector4.UP;
-        } 
-        if (Math.abs( p.z - max.z ) < EPS) 
+           result = Vector4.DOWN;
+        } else if (Math.abs( p.z - max.z ) < EPS) // p.z on max.z plane
         {
-            return Vector4.BACKWARDS;
-        } 
-        if (Math.abs( p.z - min.z ) < EPS) 
+            result = Vector4.OUTOF_VIEWPLANE;
+        } else if (Math.abs( p.z - min.z ) < EPS) // p.z on min.z plane
         {
-            return Vector4.FORWARDS;            
+            result = Vector4.INTO_VIEWPLANE;   
+        } else {
+            throw new RuntimeException("Internal error, point "+p+" is not on "+this);
         }
-        throw new RuntimeException("Internal error, point "+p+" is not on "+this);
+//        return result;
+        return transformation == null ? result : transformation.invert().transpose().multiply( result ); 
     }
 }
