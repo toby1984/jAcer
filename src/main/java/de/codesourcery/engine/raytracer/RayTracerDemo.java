@@ -26,14 +26,14 @@ public class RayTracerDemo {
 
 		final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
 		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    0 , -200 ) , 100 );	
-		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -400 , -150 ) , 100 );
+		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 		
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
 		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
 		
-		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane", new Vector4( 400,  -500, -200 ) , 200,200,200 );
-		cube1.matrix = LinAlgUtils.rotY( 30 );
-		cube1.material.reflectivity(0.5);
+		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane", new Vector4( 500,  -500, -200 ) , 200,200,200 );
+		cube1.matrix = LinAlgUtils.rotY( 80 );
+		cube1.material.reflectivity(1.0);
 		
 	    sphere3.material.reflectivity(0.5);
 	      

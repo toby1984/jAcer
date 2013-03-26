@@ -5,6 +5,8 @@ public abstract class Raytracable {
 
 	public Material material;
 	
+	public Matrix matrix = null;
+	
 	public abstract IntersectionInfo intersect(Ray ray);
 	
 	public abstract Vector4 normalVectorAt(Vector4 point);

@@ -35,7 +35,14 @@ public class Scene {
 		
 		for ( Raytracable obj : objects ) 
 		{
-			final IntersectionInfo intersection = obj.intersect( ray );
+		    final IntersectionInfo intersection;
+		    if ( obj.matrix != null ) 
+		    {
+		        intersection = obj.intersect( ray.transform( obj.matrix ) );
+		    } else {
+		        intersection = obj.intersect( ray );
+		    }
+		    
 			if ( intersection != null ) 
 			{
 				for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
@@ -55,8 +62,13 @@ public class Scene {
 			}
 		}
 		
-		if ( result != null ) {
-			result.nearestIntersectionPoint = ray.evaluateAt( nearestIntersection );
+		if ( result != null ) 
+		{
+		    if ( result.object.matrix == null ) {
+		        result.nearestIntersectionPoint = ray.evaluateAt( nearestIntersection );
+		    } else {
+                result.nearestIntersectionPoint = ray.evaluateAt( nearestIntersection ).multiply( result.object.matrix );		        
+		    }
 		}
 		return result;
 	}
