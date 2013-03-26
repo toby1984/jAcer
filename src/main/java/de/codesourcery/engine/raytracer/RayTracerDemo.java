@@ -29,25 +29,26 @@ public class RayTracerDemo {
 		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 		
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
-		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
-		
+        Plane p2 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane  		
+		Plane p3 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
+	      
 		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  200,200,200 );
 		cube1.transformation = LinAlgUtils.translationMatrix( 0 , -500 , -0 ); // .multiply( LinAlgUtils.rotY( 45 ) );
 		cube1.material.reflectivity(1.0);
 		
 	    sphere3.material.reflectivity(0.5);
-	      
-		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 		
 		final Scene scene = new Scene(camera);
+		
 //		scene.addObject( sphere1 );
 //		scene.addObject( sphere2 );
 //		scene.addObject( sphere3 );	
+		
 		scene.addObject( p1 );
-//		scene.addObject( p3 );		
-//        scene.addObject( p4 );
+		scene.addObject( p2 );		
+        scene.addObject( p3 );
         
-        scene.addObject( cube1 );        
+//        scene.addObject( cube1 );        
 		
 //		scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
 		scene.addObject( new PointLightsource( new Vector4( 0, -400, 0 ) , Color.RED) );

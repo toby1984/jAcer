@@ -34,7 +34,9 @@ public class Plane extends Raytracable {
 		}
 		final double nominator = pointOnPlane.minus( ray.point ).dotProduct( unitNormalVector );
 		final double solution = nominator / denominator;
-		return new IntersectionInfo( this ).addSolution( solution );
+		IntersectionInfo result = new IntersectionInfo( this );
+		result.nearestIntersectionPoint = ray.evaluateAt( solution );
+		return result;
 	}
 
 	@Override

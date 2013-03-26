@@ -19,6 +19,8 @@ public class Raytracer {
 	private final int LINES_X = 800;
 	private final int LINES_Y = 800;
 	
+	private static final boolean runMultiThreaded = false;
+	
 	private ThreadPoolExecutor threadpool;
 	
 	public Raytracer(Scene scene) 
@@ -61,11 +63,12 @@ public class Raytracer {
             final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( worldX ) ).plus( yAxis.multiply( worldY) );
             
             // cast ray from camera position through view plane
-            final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ) );
+            Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ) );
             
             // TODO: Performance - intersection ray <-> plane could use pre-calculated values !!
-            final double tStart=viewPlane.intersect( ray ).solutions[0];
-            return scene.findNearestIntersection(ray , tStart );	        
+            final Vector4 intersection =viewPlane.intersect( ray ).nearestIntersectionPoint;
+            ray = new Ray( intersection , ray.direction );
+            return scene.findNearestIntersection(ray);	        
 	}
 	
 	public synchronized BufferedImage trace(final int imageWidth, final int imageHeight) {
@@ -104,7 +107,7 @@ public class Raytracer {
         final CountDownLatch latch = new CountDownLatch( slices.size() );		
 		for ( final Slice slice : slices ) 
 		{
-            threadpool.execute( new Runnable() {
+		    final Runnable runnable = new Runnable() {
 
                 @Override
                 public void run()
@@ -115,12 +118,19 @@ public class Raytracer {
                         latch.countDown();
                     }
                 }
-            });
+            };
+		    if ( runMultiThreaded ) 
+		    {
+		        threadpool.execute( runnable );
+		    } else {
+		        runnable.run();  
+		    }
 		}
 		
 		try {
             latch.await();
-        } catch (InterruptedException e) {
+        } 
+		catch (InterruptedException e) {
             Thread.currentThread();
         }
 		return image;
@@ -161,10 +171,10 @@ public class Raytracer {
                 final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( viewX ) ).plus( yAxis.multiply( viewY ) );
                 
                 // cast ray from camera position through view plane
-                final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ) );
-                final double tStart  = viewPlane.intersect( ray ).solutions[0];
-                
-                final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
+                Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ) );
+                final Vector4 start  = viewPlane.intersect( ray ).nearestIntersectionPoint;
+                ray = new Ray( start , ray.direction );
+                final IntersectionInfo intersection = scene.findNearestIntersection(ray);
                 if ( intersection != null ) 
                 {
                     final Vector4 color = calculateColorAt(ray,intersection);
@@ -178,6 +188,7 @@ public class Raytracer {
                     
                     synchronized(image) 
                     {
+//                        image.setRGB( imageX ,imageY , 0xffff0000);
                         image.setRGB( imageX ,imageY , 0xff000000 | r <<16 | g << 8 | b );
                     }
                 }
@@ -218,8 +229,6 @@ public class Raytracer {
             return "Slice [x1=" + x1 + ", x2=" + x2 + ", y1=" + y1 + ", y2=" + y2 + ", stepX=" + stepX + ", stepY="
                     + stepY + "]";
         }
-        
-        
 	}
 
     public Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection)
@@ -237,13 +246,17 @@ public class Raytracer {
         {
             // cast ray from light source to point of intersection
             final Vector4 vectorToIntersection = intersectionPoint.minus( light.position );
+            
+            final double length = vectorToIntersection.length();
+            
         	final Ray rayFromLight = new Ray( light.position , vectorToIntersection );
         	
-        	final double solutionAtIntersection = rayFromLight.solutionAt( intersectionPoint ) - 0.001;
         	// check whether ray cast to light source does not pass through any other objects
         	// BEFORE hitting the light
-        	IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0 );
-        	if (  occluder == null ||  occluder.solutions[0] > solutionAtIntersection ) 
+        	IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight );
+        	final double distanceToOccluder = occluder == null ? 0.0d: occluder.nearestIntersectionPoint.distanceTo( light.position );
+        	
+        	if (  occluder == null || Math.abs( distanceToOccluder - length ) < 0.01 ) // not occluded or intersection is after lightsource has been hit
         	{
         		// calculate diffuse color
                 final Vector4 vectorToLight = light.position.minus( intersectionPoint ).normalize();
@@ -276,7 +289,7 @@ public class Raytracer {
         	// calculate reflected ray
         	final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
         	final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
-        	final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
+        	final IntersectionInfo hit = scene.findNearestIntersection( ray );
         	if ( hit != null ) {
         		Vector4 refColor = calculateColorAt( ray , hit );
         		finalColor = finalColor.multiply( 1 - material.reflectivity() ).plus( refColor.multiply( material.reflectivity() ) );

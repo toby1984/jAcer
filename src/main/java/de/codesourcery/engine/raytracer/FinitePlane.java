@@ -69,12 +69,8 @@ public class FinitePlane extends Plane {
 		if ( result == null ) {
 			return null;
 		}
-
-		final Vector4 point = ray.evaluateAt( result.solutions[0] );
-
-		if ( contains( point ) ) 
-		{
-			return result;
+		if ( contains( result.nearestIntersectionPoint ) ) {
+		    return result;
 		}
 		return null;
 	}

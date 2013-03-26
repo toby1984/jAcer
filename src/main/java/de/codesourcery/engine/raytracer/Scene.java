@@ -28,36 +28,22 @@ public class Scene {
 		lightsources.add( obj );
 	}	
 	
-	public IntersectionInfo findNearestIntersection(Ray ray,double tStart) 
+	public IntersectionInfo findNearestIntersection(Ray ray) 
 	{
 		IntersectionInfo result = null;
-		double nearestIntersection = 0;
+		double distanceToSolution = Double.MAX_VALUE;
 		
 		for ( Raytracable obj : objects ) 
 		{
 		    final IntersectionInfo intersection = obj.intersect( ray );
 			if ( intersection != null ) 
 			{
-				for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
-				{
-					final double solution = intersection.solutions[i];
-					if ( solution > tStart ) 
-					{
-						// only add intersection if we didn't find any so far OR
-						// if this intersection is closer to tStart than the one we already found
-						if ( result == null || solution < nearestIntersection ) 
-						{
-							result = intersection;
-							nearestIntersection = solution;
-						} 
-					}
-				}
+			    final double distance = intersection.nearestIntersectionPoint.distanceTo( ray.point );
+			    if ( result == null || ( distance < distanceToSolution && distance > EPSILON ) ) {			    
+			        result = intersection;
+			        distanceToSolution = distance;
+			    }
 			}
-		}
-		
-		if ( result != null ) 
-		{
-		    result.nearestIntersectionPoint = ray.evaluateAt( nearestIntersection );
 		}
 		return result;
 	}
@@ -69,22 +55,14 @@ public class Scene {
 	 * @param tStart
 	 * @return
 	 */
-	public IntersectionInfo hasAnyIntersection(Ray ray,double tStart) 
+	public IntersectionInfo hasAnyIntersection(Ray ray) 
 	{
 		for ( Raytracable obj : objects ) 
 		{
 			final IntersectionInfo intersection = obj.intersect( ray );
-			if ( intersection != null ) 
+			if ( intersection != null && intersection.nearestIntersectionPoint.distanceTo( ray.point ) > EPSILON ) 
 			{
-				for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
-				{
-					final double solution = intersection.solutions[i];
-					final double delta = solution - tStart;
-					if ( delta > EPSILON ) 
-					{
-						return intersection;
-					}
-				}
+			    return intersection;
 			}
 		}
 		return null;

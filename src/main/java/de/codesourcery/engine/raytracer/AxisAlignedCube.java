@@ -50,7 +50,9 @@ public class AxisAlignedCube extends Raytracable
         {
             return null;
         }
-        return new IntersectionInfo( this ).addSolution( tmin );        
+        IntersectionInfo result = new IntersectionInfo( this );
+        result.nearestIntersectionPoint = ray.evaluateAt( tmin );
+        return result;
     }
 
     @Override

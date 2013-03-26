@@ -46,7 +46,17 @@ public class Sphere extends Raytracable {
 			t1 = (-B - ( Math.sqrt( Bsquared - ACtimes4 ) ) ) / (2*A);
 		}
 		final double t2 = C / ( A * t1 );
-		return new IntersectionInfo(this).addSolutions( t1 , t2 );
+		
+		final IntersectionInfo result = new IntersectionInfo(this);
+		if ( t1 > 0 && t2 > 0 ) 
+		{
+		    result.nearestIntersectionPoint = ray.evaluateAt( Math.min( t1 ,  t2 ) );
+		} else if ( t1 > 0 ) {
+            result.nearestIntersectionPoint = ray.evaluateAt( t1 );		    
+		} else {
+            result.nearestIntersectionPoint = ray.evaluateAt( t2 ); 
+		}
+		return result;
 	}
 
 	@Override
