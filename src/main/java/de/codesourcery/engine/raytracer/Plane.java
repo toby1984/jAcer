@@ -1,6 +1,5 @@
 package de.codesourcery.engine.raytracer;
 
-import org.apache.commons.lang.StringUtils;
 
 
 public class Plane extends Raytracable {
@@ -9,6 +8,14 @@ public class Plane extends Raytracable {
 	public Vector4 unitNormalVector; // unit-length normal vector
 	
 	private static final double EPSILON = 0.00001;
+	
+	public Transformation transform;
+	
+	public Plane(String name,Vector4 pointOnPlane, Transformation transform) 
+	{
+		this(name, pointOnPlane , transform.transform( new Vector4(0,0,1 ) ) );
+		this.transform = transform;
+	}
 	
 	public Plane(String name,Vector4 pointOnPlane, Vector4 normalVector) 
 	{
@@ -47,14 +54,8 @@ public class Plane extends Raytracable {
 	@Override
 	public Vector4 getColorAtPoint(Vector4 o)
 	{
-        Vector4 u = o.minus( pointOnPlane ).normalize(); 
-        Vector4 v = u.crossProduct( unitNormalVector ).normalize();
-        u = unitNormalVector.crossProduct( v ).normalize(); 
-        
-	    Vector4 p = pointOnPlane;
-        double a = ( o.y * v.x - v.x*p.y - v.y * o.x + v.y*p.x) / (v.x*u.y - v.y*u.x );
-        double b = ( o.x - p.x - u.x*a) / v.x;
-	    return material.texture.getColorAt(  a , b );
+		Vector4 p = transform.transformInverse( o );
+	    return material.texture.getColorAt(  ( Math.abs(p.x) % 100.0d ) / 100.0d , ( Math.abs( p.y ) % 100.0d / 100.0d ) );
 	}
 
 	@Override

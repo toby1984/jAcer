@@ -20,7 +20,7 @@ public final class Raytracer
 	
 	private ThreadPoolExecutor threadpool;
 	
-	private static final int SAMPLES_PER_PIXEL = 4;
+	private volatile int samplesPerPixel = 1;
 	
 	public Raytracer(Scene scene) 
 	{
@@ -158,8 +158,9 @@ public final class Raytracer
         final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
         
         // hint: code assumes that 'pointOnPlane' is the center of the view plane
-        final Plane viewPlane = new Plane( "viewPlane",scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );        
-        final double factor = 1.0/SAMPLES_PER_PIXEL;
+        final Plane viewPlane = new Plane( "viewPlane",scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );
+        final int sampleCount = this.samplesPerPixel;
+        final double factor = 1.0/sampleCount;
         
         for ( double x = x1 ; x < x2 ; x += stepX ) 
         {
@@ -167,7 +168,7 @@ public final class Raytracer
             {
                 // calculate point on view plane
                 Vector4 color = new Vector4(0,0,0);
-                for ( int i = 0 ; i < SAMPLES_PER_PIXEL ; i++ ) 
+                for ( int i = 0 ; i < sampleCount ; i++ ) 
                 {
                     double viewX = x+rnd.get().nextDouble()*stepX;
                     double viewY = y-rnd.get().nextDouble()*stepY;
@@ -290,9 +291,7 @@ public final class Raytracer
         
         if ( material.texture != null ) 
         {
-             final double weight = 1; //  sumDiff.clamp(0,1).length() / 1.73205080757d; //  1.73205080757d = Math.sqrt( 1^2 + 1^2 + 1^2 )
-//            double weight = 1.0;
-//            return intersection.object.getColorAtPoint( intersectionPoint );
+             final double weight = sumDiff.clamp(0,1).length() / 1.73205080757d; //  1.73205080757d = Math.sqrt( 1^2 + 1^2 + 1^2 )
             sumDiff = intersection.object.getColorAtPoint( intersectionPoint ).multiply( weight );
             sumSpec = new Vector4(0,0,0);
         } else {
@@ -340,4 +339,12 @@ public final class Raytracer
         }
         return finalColor.clamp(0,1);
     }
+    
+    public void setSamplesPerPixel(int samplesPerPixel) {
+		this.samplesPerPixel = samplesPerPixel;
+	}
+    
+    public int getSamplesPerPixel() {
+		return samplesPerPixel;
+	}
 }

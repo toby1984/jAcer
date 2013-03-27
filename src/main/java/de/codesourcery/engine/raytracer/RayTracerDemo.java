@@ -27,7 +27,7 @@ public class RayTracerDemo {
     
 	public static void main(String[] args) throws Exception {
 
-		final Vector4 eyePosition = new Vector4( 150.0,-500.0,550.0 );
+		final Vector4 eyePosition = new Vector4( -50.0,-250.0,1900.0 );
 		final Camera camera = new Camera();
 		camera.setEyePosition( eyePosition , 0 , 0 );
 
@@ -35,14 +35,16 @@ public class RayTracerDemo {
 		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    -500 , -200 ) , 100 );	
 		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 
-		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
-		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
-
-		sphere2.material.texture = Texture.load( new File("/home/tgierke/workspace/jAcer/src/main/resources/checkers2.png" ) );
+//		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
+		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Transformation(AffineTransform.rotate(180, 0, 0)) ); // horizontal plane
+		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Transformation() ); // vertical plane
+		
+//		p4.material.diffuseColor = new Vector4(0,0,0.2);
+		p1.material.texture = Texture.load( new File("/home/tobi/workspace/raytracer/src/main/resources/checkers.png" ) );
 		
 		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( 500 , -500 , 0 ) , 200,200,200 );
 //		cube1.material.reflectivity(1.0);
-		sphere3.material.reflectivity(0.5);
+		sphere2.material.reflectivity(1.0);
 
 		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 
@@ -92,6 +94,13 @@ public class RayTracerDemo {
 			{
 				switch(e.getKeyCode() ) 
 				{
+					case KeyEvent.VK_SPACE:
+						if ( tracer.getSamplesPerPixel() == 1 ) {
+							tracer.setSamplesPerPixel(16); 
+						} else {
+							tracer.setSamplesPerPixel(1);
+						}
+						break;
 					case KeyEvent.VK_PLUS:
 						camera.moveUp( increment );
 						break;

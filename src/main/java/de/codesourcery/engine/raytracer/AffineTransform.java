@@ -80,6 +80,14 @@ public abstract class AffineTransform
 		}
 	}
 	
+	public static void main(String[] args) {
+		
+		Vector4 test = new Vector4(0,0,1);
+		Transformation t = new Transformation( AffineTransform.rotate( 0 , 0, 90 ) );
+		System.out.println("Rotated: "+t.transform( test ) );
+		System.out.println("Back: "+t.transformInverse( t.transform( test ) ) );
+	}
+	
 	protected static final class Rotation extends AffineTransform 
 	{
 		private final Matrix m;
@@ -99,7 +107,7 @@ public abstract class AffineTransform
 				tmp = tmp.multiply( LinAlgUtils.rotZ(rotZ ) );
 			}			
 			m = tmp;
-			mInverse = m.invert();
+			mInverse = LinAlgUtils.rotX( 360-rotX ).multiply( LinAlgUtils.rotY( 360-rotY ) ).multiply( LinAlgUtils.rotZ( 360-rotZ ) );
 		}
 		
 		@Override
