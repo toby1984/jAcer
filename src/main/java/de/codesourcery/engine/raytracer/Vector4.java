@@ -205,6 +205,10 @@ public final class Vector4
         return new Vector4( this.x + other.x , this.y + other.y , this.z + other.z , w );
     }     
     
+    public Vector4 plus(Vector4 v1,Vector4 v2) {
+        return new Vector4( this.x + v1.x + v2.x , this.y + v1.y +v2.y  , this.z + v1.z + v2.z , w );
+    }      
+    
     public void plusInPlace(Vector4 other) 
     {
         this.x = this.x + other.x;
@@ -279,6 +283,11 @@ public final class Vector4
     {
         return new Vector4( x * value , y * value , z * value , w );
     }
+    
+    public Vector4 multiplyAdd(double toMultiply ,Vector4 toAdd) 
+    {
+        return new Vector4( x * toMultiply + toAdd.x , y * toMultiply + toAdd.y , z * toMultiply + toAdd.z , w );
+    }    
     
     public void multiplyInPlace(double value) 
     {
@@ -396,9 +405,5 @@ public final class Vector4
 			newZ = max;
 		}		
 		return new Vector4(newX,newY,newZ);
-	}
-	
-	public double[] toArray3D() {
-	    return new double[] { x, y, z };
 	}
 }

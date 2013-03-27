@@ -1,12 +1,14 @@
 package de.codesourcery.engine.raytracer;
 
+import org.apache.commons.lang.StringUtils;
+
 
 public class Plane extends Raytracable {
 
 	public Vector4 pointOnPlane;
 	public Vector4 unitNormalVector; // unit-length normal vector
 	
-	private static final double EPSILON = 0.000001;
+	private static final double EPSILON = 0.00001;
 	
 	public Plane(String name,Vector4 pointOnPlane, Vector4 normalVector) 
 	{
@@ -35,6 +37,24 @@ public class Plane extends Raytracable {
 		final double nominator = pointOnPlane.minus( ray.point ).dotProduct( unitNormalVector );
 		final double solution = nominator / denominator;
 		return new IntersectionInfo( this ).addSolution( solution );
+	}
+	
+	public static void main(String[] args)
+    {
+	    Plane p = new Plane("test",new Vector4(0,0,0) , new Vector4(0,1,0 ) );
+    }
+	
+	@Override
+	public Vector4 getColorAtPoint(Vector4 o)
+	{
+        Vector4 u = o.minus( pointOnPlane ).normalize(); 
+        Vector4 v = u.crossProduct( unitNormalVector ).normalize();
+        u = unitNormalVector.crossProduct( v ).normalize(); 
+        
+	    Vector4 p = pointOnPlane;
+        double a = ( o.y * v.x - v.x*p.y - v.y * o.x + v.y*p.x) / (v.x*u.y - v.y*u.x );
+        double b = ( o.x - p.x - u.x*a) / v.x;
+	    return material.texture.getColorAt(  a , b );
 	}
 
 	@Override

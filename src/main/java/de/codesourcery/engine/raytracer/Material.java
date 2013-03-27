@@ -1,12 +1,14 @@
 package de.codesourcery.engine.raytracer;
 
+
 public class Material {
 
 	public Vector4 diffuseColor;
 	public Vector4 specularColor;
 	private double reflectivity;
 	public double shininess;
-
+	public Texture texture;
+	
 	public double reflectivity() {
 		return reflectivity;
 	}

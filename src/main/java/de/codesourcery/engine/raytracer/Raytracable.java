@@ -34,22 +34,24 @@ public abstract class Raytracable {
 		this.material = material;
 	}
 	
-	public final Ray reflect(Ray incomingRay , Vector4 pointOnSurface) 
-	{
-		final Vector4 normalVector = normalVectorAt( pointOnSurface );
-		final Vector4 newDirection = reflect( incomingRay.direction , normalVector );
-		return new Ray( pointOnSurface , newDirection , incomingRay.bounceCount+1 );
-	}
-	
 	public static final Vector4 reflect(Vector4 incoming, Vector4 normalVectorAtReflectionPoint) {
 		
 		/* n: normal vector at point P
 		 * d: incoming ray
 		 * 
-		 * r=d−(d⋅n)n*2
+		 * r = d − ( d ⋅n ) n *2
          *
          * where d⋅n is the dot product, and n must be normalized.
 		 */
-		return incoming.minus( normalVectorAtReflectionPoint.multiply( 2 * incoming.dotProduct( normalVectorAtReflectionPoint ) ) );
+		final double factor = 2 * incoming.dotProduct( normalVectorAtReflectionPoint );
+		double dx = incoming.x - normalVectorAtReflectionPoint.x * factor;
+        double dy = incoming.y - normalVectorAtReflectionPoint.y * factor;
+        double dz = incoming.z - normalVectorAtReflectionPoint.z * factor;        
+        return new Vector4(dx,dy,dz);
+	}
+	
+	public Vector4 getColorAtPoint(Vector4 pointOnSurface) 
+	{
+	    throw new UnsupportedOperationException("getColorAtPoint() not implemented");
 	}
 }

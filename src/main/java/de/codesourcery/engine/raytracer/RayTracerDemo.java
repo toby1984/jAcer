@@ -13,7 +13,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,9 +23,11 @@ import javax.swing.SwingUtilities;
 
 public class RayTracerDemo {
 
-	public static void main(String[] args) {
+    private static final Dimension IMAGE_SIZE = new Dimension(300,300);
+    
+	public static void main(String[] args) throws Exception {
 
-		final Vector4 eyePosition = new Vector4( 0 , -250 , 1650 );
+		final Vector4 eyePosition = new Vector4( 150.0,-500.0,550.0 );
 		final Camera camera = new Camera();
 		camera.setEyePosition( eyePosition , 0 , 0 );
 
@@ -37,10 +38,10 @@ public class RayTracerDemo {
 		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
 		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Vector4( 0 ,   0 , 100 ) ); // vertical plane
 
-		p4.material.reflectivity( 1.0 );
+		sphere2.material.texture = Texture.load( new File("/home/tgierke/workspace/jAcer/src/main/resources/checkers2.png" ) );
+		
 		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( 500 , -500 , 0 ) , 200,200,200 );
-		cube1.material.reflectivity(1.0);
-
+//		cube1.material.reflectivity(1.0);
 		sphere3.material.reflectivity(0.5);
 
 		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
@@ -63,8 +64,8 @@ public class RayTracerDemo {
 
 		final RenderPanel panel = new RenderPanel(tracer);
 
-		panel.setMinimumSize( new Dimension(300,300) );
-		panel.setPreferredSize( new Dimension(300,300) );		
+		panel.setMinimumSize( IMAGE_SIZE );
+		panel.setPreferredSize( IMAGE_SIZE );		
 
 		final JFrame frame = new JFrame("Tracer V0.1");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
@@ -274,7 +275,7 @@ public class RayTracerDemo {
 			{
 				trace(w,h,false);
 			} 
-			else if ( img != null ) 
+			else 
 			{
 				g.drawImage( img , 0 , 0 , w , h , null );
 			}

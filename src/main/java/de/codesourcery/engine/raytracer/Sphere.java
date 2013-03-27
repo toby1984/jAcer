@@ -20,21 +20,6 @@ public class Sphere extends Raytracable {
 		this.radius = radius;
 	}
 	
-	public static void main(String[] args) {
-		
-		Sphere s = new Sphere("test" , new Vector4(0,0,0) , 10 );
-		
-		Ray r = new Ray(new Vector4(0,0,100) , new Vector4(0,0,-1 ) );
-		IntersectionInfo intersect = s.intersect( r );
-		System.out.println("Intersect: "+intersect);
-		Vector4 p1 = r.evaluateAt( intersect.solutions[0] );
-		Vector4 p2 = r.evaluateAt( intersect.solutions[1] );
-		System.out.println("p1: "+p1);
-		System.out.println("p2: "+p2);
-		System.out.println("Normal at p1: "+s.normalVectorAt( p1 ) );
-		System.out.println("Normal at p2: "+s.normalVectorAt( p2 ) );
-	}
-
 	@Override
 	public IntersectionInfo intersect(Ray inputRay) 
 	{
@@ -68,6 +53,36 @@ public class Sphere extends Raytracable {
 //		return new IntersectionInfo(this).addSolutions( t1,t2);
 	}
 
+	@Override
+	public Vector4 getColorAtPoint(Vector4 p)
+	{
+//        p = transform.transformInverse( p ); 
+        
+	    double r = p.length();
+	    
+        // double v = Math.acos(p.z/r) / Math.PI;
+        // double u = Math.acos( p.x/r * Math.sin (Math.PI * v) ) / 2*Math.PI;     
+        
+	    // ((x^2 + y^2 + z^2)^0.5, arctan(y/x), arccos(z/r))
+        double longitude = Math.atan2( p.y , p.x);
+        double latitude = Math.acos( p.z / r );
+        
+        double u = radToDeg( longitude ) / 360;
+        double v = radToDeg(latitude ) / 360;
+     
+	    return material.texture.getColorAt( u , v );
+	}
+	
+	private static double radToDeg(double rad) {
+	    double result = rad*180.0/Math.PI;
+	    if ( result > 359 ) {
+	        result -= 360;
+	    } else if ( result < 0 ) {
+	        result += 360;
+	    }
+	    return result;
+	}
+	
 	@Override
 	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates) 
 	{
