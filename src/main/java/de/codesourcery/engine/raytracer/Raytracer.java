@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -22,6 +21,7 @@ public class Raytracer {
 	private final int LINES_Y = 800;
 	
 	private ThreadPoolExecutor threadpool;
+	private static final boolean multiThreaded = true;
 	
 	public Raytracer(Scene scene) 
 	{
@@ -100,13 +100,12 @@ public class Raytracer {
                 Slice slice = new Slice(sliceX1 , sliceX2 , sliceY1 , sliceY2 , image ,stepX , stepY );
 			    slices.add(  slice );
 			}
-			System.out.println();
 		}
 		
         final CountDownLatch latch = new CountDownLatch( slices.size() );		
 		for ( final Slice slice : slices ) 
 		{
-            threadpool.execute( new Runnable() {
+			final Runnable r =  new Runnable() {
 
                 @Override
                 public void run()
@@ -117,7 +116,13 @@ public class Raytracer {
                         latch.countDown();
                     }
                 }
-            });
+            };
+            
+            if ( multiThreaded ) {
+            	threadpool.execute( r );
+            } else {
+            	r.run();
+            }
 		}
 		
 		try {

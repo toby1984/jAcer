@@ -1,9 +1,9 @@
 package de.codesourcery.engine.raytracer;
 
-import java.util.Vector;
 
 public class AxisAlignedCube extends Raytracable
 {
+	private Transformation transform;	
     private Vector4 min;
     private Vector4 max;
 
@@ -11,15 +11,13 @@ public class AxisAlignedCube extends Raytracable
     private final double height;
     private final double depth;
     
-    private final Vector4 center;
-    
     public AxisAlignedCube(String name, Vector4 center,double width, double height, double depth)
     {
         super(name);
+	    this.transform = new Transformation( AffineTransform.translate( center.x , center.y , center.z ) );
         this.width = width;
         this.depth = depth;
         this.height = height;
-        this.center = center;
         transformation( null );
     }
     
@@ -40,7 +38,7 @@ public class AxisAlignedCube extends Raytracable
     public IntersectionInfo intersect(Ray inputRay)
     {
     	// translate ray by center
-    	Ray ray = inputRay.transform( center );
+    	Ray ray = inputRay.transform( transform );
         
         // r.dir is unit direction vector of ray
         double dirFracx = 1.0f / ray.direction.x;
@@ -68,14 +66,16 @@ public class AxisAlignedCube extends Raytracable
             return null;
         }
         
-        final Vector4 point = ray.evaluateAt( tmin ).plus( center ); // reverse translation by center
+        Vector4 point = ray.evaluateAt( tmin ); // reverse translation by center
+        point = transform.transformInverse( point );
        	return new IntersectionInfo( this ).addSolution( inputRay.solutionAt( point ) );
     }
 
     @Override
     public Vector4 normalVectorAt(Vector4 point)
     {
-    	Vector4 p = point.minus( center );
+    	Vector4 p = transform.transform( point );
+    	
         final double EPS = 0.001f;
 
         final Vector4 result;
@@ -101,6 +101,6 @@ public class AxisAlignedCube extends Raytracable
         } else {
             throw new RuntimeException("Internal error, point "+p+" is not on "+this);
         }
-        return result;
+        return transform.transformNormal( result );
     }
 }

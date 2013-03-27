@@ -52,9 +52,9 @@ public class Ray
 		System.out.println( ray);
 	}
 	
-	public Ray transform(Vector4 vec) 
+	public Ray transform(Transformation transform) 
 	{
-		return new Ray( point.minus(vec) , direction );
+		return new Ray( transform.transform( point ) , transform.transformDirection( direction ) );
 	}	
 	
 	public Ray transform(Matrix m) 

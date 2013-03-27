@@ -26,6 +26,30 @@ public final class Vector4
         this.w = input.w;
     }
     
+    @Override
+    public boolean equals(Object obj) 
+    {
+    	if ( obj != null && obj.getClass() == Vector4.class ) 
+    	{
+    		Vector4 o = (Vector4) obj;
+    		return this.x == o.x && this.y == o.y && this.z == o.z && this.w == o.w;
+    	}
+    	return false;
+    }
+    
+    public boolean equals(Object obj,double epsilon) 
+    {
+    	if ( obj != null && obj.getClass() == Vector4.class ) 
+    	{
+    		Vector4 o = (Vector4) obj;
+    		return Math.abs( this.x - o.x ) < epsilon &&
+    				Math.abs( this.y - o.y ) < epsilon &&
+    				Math.abs( this.z - o.z ) < epsilon &&
+    				Math.abs( this.w - o.w ) < epsilon;
+    	}
+    	return false;
+    }    
+    
     public int toRGB() {
         int color = ((int) ( r() *255f) ) << 16;
         color |= ((int) ( g() *255f) ) << 8;

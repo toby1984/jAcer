@@ -3,27 +3,42 @@ package de.codesourcery.engine.raytracer;
 
 public class Sphere extends Raytracable {
 
-	public Vector4 center;
+	private Transformation transform;
 	public double radius;
 	
 	public Sphere(String name,Material material,Vector4 center,double radius) 
 	{
 	    super(name,material);
-		this.center = center;
+	    this.transform = new Transformation( AffineTransform.translate( center.x , center.y , center.z ) );
 		this.radius = radius;
 	}	
 	
 	public Sphere(String name,Vector4 center,double radius) 
 	{
 	    super(name);
-		this.center = center;
+	    this.transform = new Transformation( AffineTransform.translate( center.x , center.y , center.z ) );	    
 		this.radius = radius;
+	}
+	
+	public static void main(String[] args) {
+		
+		Sphere s = new Sphere("test" , new Vector4(0,0,0) , 10 );
+		
+		Ray r = new Ray(new Vector4(0,0,100) , new Vector4(0,0,-1 ) );
+		IntersectionInfo intersect = s.intersect( r );
+		System.out.println("Intersect: "+intersect);
+		Vector4 p1 = r.evaluateAt( intersect.solutions[0] );
+		Vector4 p2 = r.evaluateAt( intersect.solutions[1] );
+		System.out.println("p1: "+p1);
+		System.out.println("p2: "+p2);
+		System.out.println("Normal at p1: "+s.normalVectorAt( p1 ) );
+		System.out.println("Normal at p2: "+s.normalVectorAt( p2 ) );
 	}
 
 	@Override
 	public IntersectionInfo intersect(Ray inputRay) 
 	{
-		final Ray ray = inputRay.transform( center );
+		final Ray ray = inputRay.transform( transform );
 		
 		// intersection with sphere at center (0,0,0)
 		double A = ray.direction.magnitude(); // v^2
@@ -46,21 +61,23 @@ public class Sphere extends Raytracable {
 			t1 = (-B - ( Math.sqrt( Bsquared - ACtimes4 ) ) ) / (2*A);
 		}
 		final double t2 = C / ( A * t1 );
-		return new IntersectionInfo(this).addSolutions( t1 , t2 );
+		
+		final Vector4 p1 = transform.transformInverse( ray.evaluateAt( t1 ) );
+		final Vector4 p2 = transform.transformInverse( ray.evaluateAt( t2 ) );
+		return new IntersectionInfo(this).addSolutions( inputRay.solutionAt( p1 ), inputRay.solutionAt( p2 ) );
+//		return new IntersectionInfo(this).addSolutions( t1,t2);
 	}
 
 	@Override
 	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates) 
 	{
-		// the normal vector is just ( point minus center )
-//		final Vector4 transformedPoint = pointInViewCoordinates.multiply( modelMatrix );
-		return pointInViewCoordinates.minus(center).normalize();		
-//		return pointInViewCoordinates.minus(center).normalize();
+		Vector4 t = transform.transform( pointInViewCoordinates );		
+		return t.normalize();
 	}
 	
 	@Override
 	public String toString() 
 	{
-		return "Sphere[ "+name+" , center: "+center+" , radius: "+radius+"]";
+		return "Sphere[ "+name+" , radius: "+radius+"]";
 	}
 }
