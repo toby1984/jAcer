@@ -46,16 +46,11 @@ public class Plane extends Raytracable {
 		return new IntersectionInfo( this ).addSolution( solution );
 	}
 	
-	public static void main(String[] args)
-    {
-	    Plane p = new Plane("test",new Vector4(0,0,0) , new Vector4(0,1,0 ) );
-    }
-	
 	@Override
 	public Vector4 getColorAtPoint(Vector4 o)
 	{
 		Vector4 p = transform.transformInverse( o );
-	    return material.texture.getColorAt(  ( Math.abs(p.x) % 100.0d ) / 100.0d , ( Math.abs( p.y ) % 100.0d / 100.0d ) );
+	    return material.texture.getColorAt(  ( Math.abs(p.x) % 100d ) / 100.0d , ( Math.abs( p.y ) % 100d / 100d ) );
 	}
 
 	@Override

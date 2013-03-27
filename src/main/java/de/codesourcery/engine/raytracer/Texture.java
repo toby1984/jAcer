@@ -12,15 +12,28 @@ public class Texture
     private final int maxX;
     private final int maxY;
     
+    private final int width;
+    private final int height;
+    
     private final BufferedImage image;
     
     public static Texture load(File file) throws IOException {
         return new Texture( ImageIO.read( file ) );
     }
     
+    public int getWidth() {
+		return width;
+	}
+    
+    public int getHeight() {
+		return height;
+	}
+    
     public Texture(BufferedImage image) 
     {
         this.image = image;
+        this.width = image.getWidth();
+        this.height = image.getHeight();
         this.maxX= image.getWidth()-1;
         this.maxY = image.getHeight()-1;
     }
