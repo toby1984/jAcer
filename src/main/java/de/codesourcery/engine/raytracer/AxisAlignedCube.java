@@ -76,7 +76,7 @@ public class AxisAlignedCube extends Raytracable
         
         Vector4 point = ray.evaluateAt( tmin ); // reverse translation
         point = transform.transformInverse( point );
-       	return new IntersectionInfo( this ).addSolution( inputRay.solutionAt( point ) );
+       	return new IntersectionInfo( this, inputRay.solutionAt( point ) );
     }
 
     @Override
@@ -110,10 +110,6 @@ public class AxisAlignedCube extends Raytracable
             throw new RuntimeException("Internal error, point "+p+" is not on "+this);
         }
         
-        AffineTransform rot = transform.getFirstRotation();
-        if ( rot != null ) {
-            return rot.applyInverse( result );
-        }
-        return result;
+        return transform.getFirstRotation().applyInverse( result );
     }
 }

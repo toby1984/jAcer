@@ -3,6 +3,8 @@ package de.codesourcery.engine.raytracer;
 
 public abstract class AffineTransform 
 {
+	public static final AffineTransform IDENTITY = new IdentityTransform();
+	
 	private final boolean isTranslation;
 	private final boolean isRotation;
 	private final boolean isScaling;
@@ -12,6 +14,32 @@ public abstract class AffineTransform
 		this.isTranslation = isTranslation;
 		this.isRotation = isRotation;
 		this.isScaling = isScaling;
+	}
+	
+	public static final class IdentityTransform extends AffineTransform {
+
+		protected IdentityTransform()
+		{
+			super(false,false,false);
+		}
+
+		private final Matrix m = Matrix.identity();
+		
+		@Override
+		public Vector4 apply(Vector4 v) {
+			return v;
+		}
+
+		@Override
+		public Vector4 applyInverse(Vector4 v) {
+			return v;
+		}
+
+		@Override
+		public Matrix getMatrix() {
+			return m;
+		}
+		
 	}
 
 	protected static final class Scale extends AffineTransform 

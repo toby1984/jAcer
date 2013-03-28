@@ -296,22 +296,21 @@ public final class Matrix
 
     public Vector4 multiply(Vector4 vector4)
     {
-        final double[] result = new double[4];
         final double[] thisData = this.data;
 
-        result[0] = this.data[ 0 ] * vector4.x + thisData[ 0 + SIZE ] * vector4.y +  
+        double nx = this.data[ 0 ] * vector4.x + thisData[ 0 + SIZE ] * vector4.y +  
                 thisData[ 0 + SIZE*2 ] * vector4.z + thisData[ 0 + SIZE*3 ] * vector4.w;
 
-        result[ 1 ] = thisData[ 1 ] * vector4.x + thisData[ 1 + SIZE ] * vector4.y + thisData[ 1 + SIZE*2 ] * vector4.z+
+        double ny = thisData[ 1 ] * vector4.x + thisData[ 1 + SIZE ] * vector4.y + thisData[ 1 + SIZE*2 ] * vector4.z+
                 thisData[ 1 + SIZE*3 ] * vector4.w;
 
-        result[ 2 ] = thisData[ 2 ] * vector4.x + thisData[ 2 + SIZE ] * vector4.y+
+        double nz = thisData[ 2 ] * vector4.x + thisData[ 2 + SIZE ] * vector4.y+
                 thisData[ 2 + SIZE*2 ] * vector4.z + thisData[ 2 + SIZE*3 ] * vector4.w;
 
-        result [ 3] = thisData[ 3 ] * vector4.x + thisData[ 3 + SIZE ] * vector4.y+ thisData[ 3 + SIZE*2 ] * vector4.z+
+        double nw = thisData[ 3 ] * vector4.x + thisData[ 3 + SIZE ] * vector4.y+ thisData[ 3 + SIZE*2 ] * vector4.z+
                 thisData[ 3 + SIZE*3 ] * vector4.w;        
 
-        return new Vector4( result );
+        return new Vector4( nx,ny,nz,nw);
     }
 
     public void multiplyInPlace(Vector4[] data) 

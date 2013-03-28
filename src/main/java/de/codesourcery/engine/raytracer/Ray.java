@@ -23,8 +23,7 @@ public class Ray
 	
 	public Vector4 evaluateAt(double t) 
 	{
-		// u+v*t
-		return point.plus( direction.multiply( (float) t ) );
+		return direction.multiplyAdd( t , point );
 	}
 	
 	public double solutionAt(Vector4 p) 
@@ -45,28 +44,12 @@ public class Ray
 		return 0;
 	}
 	
-	public static void main(String[] args) 
-	{
-		Ray ray = new Ray( new Vector4(0,0,0) , new Vector4(0,0,1 ).normalize() );
-        System.out.println( "Input: "+ray);		
-		ray = ray.transform( Matrix.identity() );
-		System.out.println( ray);
-	}
-	
 	public Ray transform(Transformation transform) 
 	{
 	    // direction is already normalized and transformDirection() applies only the rotational
 	    // component of the transformation so the length of the vector does not change
 		return new Ray( transform.transform( point ) , transform.transformDirection( direction ) );
 	}	
-	
-	public Ray transform(Matrix m) 
-	{
-	    final Vector4 p1 = point.plus( direction );
-	    Vector4 newp0 = point.multiply( m );
-	    Vector4 newp1 = p1.multiply(m);
-		return new Ray( newp0 , newp1.minus(newp0).normalize() );
-	}
 	
 	@Override
 	public String toString() {

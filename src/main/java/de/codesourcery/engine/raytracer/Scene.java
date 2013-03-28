@@ -3,7 +3,7 @@ package de.codesourcery.engine.raytracer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Scene {
+public final class Scene {
 
 	public final List<Raytracable> objects = new ArrayList<>();
 	public final List<Lightsource> lightsources = new ArrayList<>();
@@ -78,9 +78,7 @@ public class Scene {
 			{
 				for ( int i = 0 ; i < intersection.solutionCount ; i++ ) 
 				{
-					final double solution = intersection.solutions[i];
-					final double delta = solution - tStart;
-					if ( delta > EPSILON ) 
+					if ( intersection.solutions[i] > tStart ) 
 					{
 						return intersection;
 					}

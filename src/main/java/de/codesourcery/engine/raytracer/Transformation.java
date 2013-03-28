@@ -8,13 +8,33 @@ public final class Transformation {
     private final AffineTransform second;
     private final AffineTransform third;
 
+    private final AffineTransform firstRotation;
+    
     private final Matrix invTransposedMatrix;
+    
+    private final ChainedTransformation transform;    
+    private final ChainedTransformation inverseTransform;
 
     public Transformation() 
     {
         first = second = third = null;
         this.count = 0;
         invTransposedMatrix = Matrix.identity();
+        this.firstRotation = AffineTransform.IDENTITY;
+        this.inverseTransform = new ChainedTransformation() {
+
+			@Override
+			public final Vector4 apply(Vector4 v) {
+				return v;
+			}
+        };
+        this.transform = new ChainedTransformation() {
+
+			@Override
+			public final Vector4 apply(Vector4 v) {
+				return v;
+			}
+        };        
     }
 
     public static void main(String[] args) 
@@ -35,17 +55,27 @@ public final class Transformation {
     public Transformation(AffineTransform... affineTransforms) 
     {
         Matrix m = Matrix.identity();
+        AffineTransform rotation = null;
         if ( affineTransforms != null && affineTransforms.length > 0 )
         {
             this.first = affineTransforms[0];
+            if ( this.first.isRotation() ) {
+            	rotation = this.first;
+            }
             m = this.first.getMatrix();
             if ( affineTransforms.length > 1 ) 
             {
                 this.second= affineTransforms[1];
+                if ( rotation == null && this.second.isRotation() ) {
+                	rotation = this.second;
+                }                
                 m = m.multiply( this.second.getMatrix() );
                 if ( affineTransforms.length > 2 ) 
                 {
                     this.third = affineTransforms[2];
+                    if ( rotation == null && this.third.isRotation() ) {
+                    	rotation = this.third;
+                    }                      
                     m = m.multiply( this.third.getMatrix() );
                     this.count = 3;
                 } 
@@ -65,25 +95,91 @@ public final class Transformation {
             this.second = null;
             this.third = null;
         }
+        this.firstRotation = rotation == null ? AffineTransform.IDENTITY : rotation;
         this.invTransposedMatrix = m.invert().transpose();
+        this.inverseTransform = createInverseTransform();
+        this.transform = createChainedTransformation();
+    }
+    
+    private ChainedTransformation createInverseTransform() 
+    {
+        // make sure to apply transformations in reverse order third -> second -> first
+        switch( count ) 
+        {
+            case 0:
+                return new ChainedTransformation() {
+					
+					@Override
+					public final Vector4 apply(Vector4 v) {
+						return v;
+					}
+				};
+            case 1:
+                return new ChainedTransformation() {
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return first.applyInverse( v );						
+					}
+				};            	
+            case 2:
+                return new ChainedTransformation() {
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return first.applyInverse( second.applyInverse( v ) );						
+					}
+				};               	
+            case 3:
+                return new ChainedTransformation() {
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return first.applyInverse( second.applyInverse( third.applyInverse( v ) ) );		               
+					}
+				};             	
+            default:
+                throw new RuntimeException("Unreachable code reached");
+        }    	
     }
 
-    public Vector4 transform(Vector4 v) 
+    private ChainedTransformation createChainedTransformation() 
     {
         switch( count ) 
         {
             case 0:
-                return v;
+            	return new ChainedTransformation() {
+
+					@Override
+					public final Vector4 apply(Vector4 v) {
+						return v;
+					}
+            	}; 
             case 1:
-                return first.apply( v );
+            	return new ChainedTransformation() {
+
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return first.apply( v );					
+					}
+            	};             	
             case 2:
-                return second.apply( first.apply( v ) );
+            	return new ChainedTransformation() {
+
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return second.apply( first.apply( v ) );		              
+					}
+            	};             	
             case 3:
-                return third.apply( second.apply( first.apply( v ) ) );
+            	return new ChainedTransformation() {
+
+					@Override
+					public final Vector4 apply(Vector4 v) {
+		                return third.apply( second.apply( first.apply( v ) ) );		             
+					}
+            	};              	
             default:
                 throw new RuntimeException("Unreachable code reached");
         }
-    }
+    }    
 
     @Override
     public String toString()
@@ -103,134 +199,31 @@ public final class Transformation {
         }       
     }
     
+    public Vector4 transform(Vector4 v) 
+    {
+    	return this.transform.apply( v );
+    }    
+    
     public Vector4 transformDirection(Vector4 v) 
     {
-        Vector4 result = v;
-        switch( count ) 
-        {
-            case 0:
-                return v;
-            case 1:
-                if ( first.isRotation() ) {
-                    result = first.apply( result );
-                }
-                break;
-            case 2:
-                if ( first.isRotation() ) {
-                    result = first.apply( result );
-                }				
-                if ( second.isRotation() ) {
-                    result = second.apply( result );
-                }				
-                break;
-            case 3:
-                if ( first.isRotation() ) {
-                    result = first.apply( result );
-                }				
-                if ( second.isRotation() ) {
-                    result = second.apply( result );
-                }	
-                if ( third.isRotation() ) {
-                    result = third.apply( result );
-                }				
-                break;
-            default:
-                throw new RuntimeException("Unreachable code reached");
-        }		
-        return result;
+    	return firstRotation.apply( v );
     }
-
-    public AffineTransform getFirstRotation()
-    {
-        switch( count ) 
-        {
-            case 0:
-                break;
-            case 1:
-                if ( first.isRotation() ) {
-                    return first;
-                }
-                break;
-            case 2:
-                if ( first.isRotation() ) {
-                    return first;
-                }               
-                if ( second.isRotation() ) {
-                    return second;
-                }               
-                break;
-            case 3:
-                if ( first.isRotation() ) {
-                    return first;
-                }               
-                if ( second.isRotation() ) {
-                    return second;
-                }   
-                if ( third.isRotation() ) {
-                    return third;
-                }   
-                break;
-            default:
-                throw new RuntimeException("Unreachable code reached");	                
-        }
-        return null;
-    }
-    
-    public AffineTransform getFirstTranslation()
-    {
-        switch( count ) 
-        {
-            case 0:
-                break;
-            case 1:
-                if ( first.isTranslation() ) {
-                    return first;
-                }
-                break;
-            case 2:
-                if ( first.isTranslation() ) {
-                    return first;
-                }               
-                if ( second.isTranslation() ) {
-                    return second;
-                }               
-                break;
-            case 3:
-                if ( first.isTranslation() ) {
-                    return first;
-                }               
-                if ( second.isTranslation() ) {
-                    return second;
-                }   
-                if ( third.isTranslation() ) {
-                    return third;
-                }   
-                break;
-            default:
-                throw new RuntimeException("Unreachable code reached");                 
-        }
-        return null;
-    }    
 
     public Vector4 transformNormal(Vector4 v) {
         return v.multiply( invTransposedMatrix );
     }
+    
+    protected abstract class ChainedTransformation {
+    	
+    	public abstract Vector4 apply(Vector4 v);
+    }
 
     public Vector4 transformInverse(Vector4 v) 
     {
-        // make sure to apply transformations in reverse order third -> second -> first
-        switch( count ) 
-        {
-            case 0:
-                return v;
-            case 1:
-                return first.applyInverse( v );
-            case 2:
-                return first.applyInverse( second.applyInverse( v ) );
-            case 3:
-                return first.applyInverse( second.applyInverse( third.applyInverse( v ) ) );
-            default:
-                throw new RuntimeException("Unreachable code reached");
-        }
-    }	
+    	return inverseTransform.apply( v );
+    }
+    
+    public AffineTransform getFirstRotation() {
+		return firstRotation;
+	}
 }

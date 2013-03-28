@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -23,7 +24,7 @@ import javax.swing.SwingUtilities;
 
 public class RayTracerDemo {
 
-	private static final Dimension IMAGE_SIZE = new Dimension(400,400);
+	private static final Dimension IMAGE_SIZE = new Dimension(800,800);
 
 	private static final Vector4 DEFAULT_EYE_POSITION = new Vector4( -50.0,-250.0,1900.0 );
 
@@ -123,6 +124,8 @@ public class RayTracerDemo {
 
 		public final Raytracer tracer;
 
+		private double bestRaysPerSecond = 0;
+		
 		private static final float increment = 50;
 
 		private final KeyAdapter keyAdapter =  new KeyAdapter() 
@@ -199,7 +202,6 @@ public class RayTracerDemo {
 					default:
 						return;
 				}
-				System.out.println( tracer.scene.camera );
 				recalculate();                        
 			}
 		};
@@ -272,7 +274,7 @@ public class RayTracerDemo {
 		{
 			trace(getWidth() , getHeight() , false );
 		}
-
+		
 		private void trace(final int w,final int h,boolean waitForCompletion) 
 		{
 			synchronized( IMAGE_LOCK) 
@@ -288,14 +290,20 @@ public class RayTracerDemo {
 			{
 				public void run() 
 				{
-					System.out.println("Tracing "+w+" x "+h);	
+					System.out.print("Tracing "+w+" x "+h+" ... ");	
 					long time = -System.currentTimeMillis();
+					double raysPerSecond = 0;
 					try 
 					{
 						final BufferedImage newImage = tracer.trace( w , h );
 						time += System.currentTimeMillis();
 						synchronized( IMAGE_LOCK ) 
 						{
+							long rays = tracer.getSamplesPerPixel()*w*h;							
+							raysPerSecond = rays / (time/1000.0);		
+							if ( raysPerSecond > bestRaysPerSecond ) {
+								bestRaysPerSecond = raysPerSecond;
+							}
 							image = newImage;
 						}
 
@@ -312,8 +320,8 @@ public class RayTracerDemo {
 					} 
 					finally 
 					{
-						System.out.println("Finished tracing "+w+" x "+h+" [ "+time+" millis ]");
-						// ordering sync(LOCK) -> latch -> boolean flag is important here, see doWithLock()
+						final DecimalFormat DF = new DecimalFormat("###,###,###,##0");
+						System.out.println( time+" millis | "+DF.format(raysPerSecond)+" rays/s , best: "+DF.format(bestRaysPerSecond)+" rays/s ]");
 						latch.countDown();		
 						synchronized( IMAGE_LOCK) 
 						{

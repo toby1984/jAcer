@@ -43,7 +43,7 @@ public class Plane extends Raytracable {
 		}
 		final double nominator = pointOnPlane.minus( ray.point ).dotProduct( unitNormalVector );
 		final double solution = nominator / denominator;
-		return new IntersectionInfo( this ).addSolution( solution );
+		return new IntersectionInfo( this , solution );
 	}
 	
 	@Override

@@ -276,22 +276,21 @@ public final class Vector4
     
     public Vector4 multiply( Matrix matrix) 
     {
-        final double[] result = new double[4];
         final double[] matrixData = matrix.getData();
 
-        result[0] = x * matrixData[0] + y * matrixData[1]+
+        double nx = x * matrixData[0] + y * matrixData[1]+
                     z * matrixData[2]+ w * matrixData[3];
         
-        result[1] = x * matrixData[4] + y * matrixData[5] +
+        double ny = x * matrixData[4] + y * matrixData[5] +
                     z * matrixData[6] + w * matrixData[7];
         
-        result[2] = x * matrixData[8] + y * matrixData[9] +
+        double nz = x * matrixData[8] + y * matrixData[9] +
                     z * matrixData[10] + w * matrixData[11];
         
-        result[3] = x * matrixData[12] + y * matrixData[13] +
+        double nw = x * matrixData[12] + y * matrixData[13] +
                     z * matrixData[14] + w * matrixData[15];
         
-        return new Vector4( result );
+        return new Vector4( nx,ny,nz,nw);
     }
     
     public Vector4 multiply(double value) 
@@ -318,16 +317,16 @@ public final class Vector4
     
     public Vector4 normalize() 
     {
-        final double len = length();
+        final double len = Math.sqrt( x*x + y*y +z*z );
         if ( len  == 0 ) {
-        	return new Vector4(0,0,0); 
+        	return new Vector4(); 
         }
         return new Vector4( x / len , y / len , z / len  , w );
     }
     
     public void normalizeInPlace() 
     {
-        final double len = length();
+        final double len = Math.sqrt( x*x + y*y +z*z );
         if ( len  != 0 && len != 1 ) 
         {
         	this.x = this.x / len;
@@ -368,8 +367,7 @@ public final class Vector4
     
     public double length() 
     {
-    	final double sum = x*x + y*y +z*z;
-        return Math.sqrt( sum );   
+        return Math.sqrt( x*x + y*y +z*z );   
     }
     
     public double magnitude() {
