@@ -37,6 +37,13 @@ public final class Vector4
     	return false;
     }
     
+    public void copyInto(Vector4 other) {
+    	other.x = x;
+    	other.y = y;
+    	other.z = z;
+    	other.w = w;
+    }
+    
     public boolean equals(Object obj,double epsilon) 
     {
     	if ( obj != null && obj.getClass() == Vector4.class ) 
@@ -98,7 +105,8 @@ public final class Vector4
         this.w = data[offset+3];
     }
     
-    public Vector4 flip() {
+    public Vector4 flip() 
+    {
     	return new Vector4(-x,-y,-z,w);
     }
     
@@ -208,6 +216,13 @@ public final class Vector4
     public Vector4 plus(Vector4 v1,Vector4 v2) {
         return new Vector4( this.x + v1.x + v2.x , this.y + v1.y +v2.y  , this.z + v1.z + v2.z , w );
     }      
+    
+    public void plusInPlace(Vector4 v1,Vector4 v2) 
+    {
+    	this.x = this.x + v1.x + v2.x ;
+    	this.y = this.y + v1.y + v2.y ;
+    	this.z = this.z + v1.z + v2.z ;
+    }        
     
     public void plusInPlace(Vector4 other) 
     {
@@ -353,7 +368,8 @@ public final class Vector4
     
     public double length() 
     {
-        return Math.sqrt( x*x + y*y + z*z );   
+    	final double sum = x*x + y*y +z*z;
+        return Math.sqrt( sum );   
     }
     
     public double magnitude() {

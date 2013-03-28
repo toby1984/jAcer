@@ -1175,4 +1175,31 @@ public strictfp class MersenneTwisterFast implements Serializable, Cloneable
         } while (bits - val + (n - 1) < 0);
         return val;
     }
+    
+    public Vector4 randomUnitVectorOnHemisphere(Vector4 normalVector) {
+    	
+    	double u = nextDouble(true,true);
+    	double v = nextDouble(true,true);
+    	
+    	double lat = 2*Math.PI*u;
+    	double lon = Math.acos( 2*v-1 );
+    	
+        double x = Math.cos(lat)*Math.cos(lon);
+        double y = Math.cos(lat)*Math.sin(lon);
+        double z = Math.sin(lat);
+        Vector4 result = new Vector4(x,y,z);
+        if ( result.dotProduct( normalVector ) < 0 ) {
+        	return result.flip();
+        }
+        return result;
+    }
+    
+    public static void main(String[] args) {
+		
+    	Vector4 normal = new Vector4(0,1,0);
+    	MersenneTwisterFast twister = new MersenneTwisterFast();
+    	for ( int i = 0 ; i < 10 ; i++ ) {
+    		System.out.println( twister.randomUnitVectorOnHemisphere( normal ) );
+    	}
+	}
 }

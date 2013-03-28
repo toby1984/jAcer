@@ -443,7 +443,7 @@ public final class Raytracer
         if ( material.texture != null ) 
         {
              final double weight = sumDiff.clamp(0,1).length() / 1.73205080757d; //  1.73205080757d = Math.sqrt( 1^2 + 1^2 + 1^2 )
-            sumDiff = intersection.object.getColorAtPoint( intersectionPoint ).straightMultiply( sumDiff );
+            sumDiff = intersection.object.sampleTextureColorAtPoint( intersectionPoint ).straightMultiply( sumDiff );
             sumSpec = new Vector4(0,0,0);
         } else {
             sumDiff = sumDiff.multiply( 1 - material.reflectivity() );

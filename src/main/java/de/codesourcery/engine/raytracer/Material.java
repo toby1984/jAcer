@@ -9,6 +9,7 @@ public class Material {
 	public double shininess;
 	public Texture texture;
 	public double refractionIndex=1.0;
+	public double glossiness;
 	
 	public double reflectivity() {
 		return reflectivity;

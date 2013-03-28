@@ -40,8 +40,42 @@ public abstract class Raytracable {
         return new Vector4(dx,dy,dz);
 	}
 	
-	public Vector4 getColorAtPoint(Vector4 pointOnSurface) 
+	public Vector4 sampleTextureColorAtPoint(Vector4 pointOnSurface) 
 	{
 	    throw new UnsupportedOperationException("getColorAtPoint() not implemented");
+	}
+	
+	private static final ThreadLocal<MersenneTwisterFast> twister = new ThreadLocal<MersenneTwisterFast>() 
+			{
+		protected MersenneTwisterFast initialValue() {
+			return new MersenneTwisterFast( System.currentTimeMillis() );
+		}
+	};
+	
+	/**
+	 * Perturbs a normal vector by construction an imaginary view plane orthogonal to a normal vector in a certain distance from
+	 * a point of origin and then picking a random point on it.
+	 *    
+	 * @param origin point of origin, view plane will be <code>distanceToOrigin</code> apart
+	 * @param normalVector the normalalized vector to perturb
+	 * @param planeWidth The width of the view plane in distance <code>distanceToOrigin</code>
+	 * @param distanceToOrigin distance of the view plane from <code>origin</code> 
+	 * @return
+	 */
+	public static Vector4 perturbNormalVector(Vector4 origin, Vector4 normalVector,double planeWidth,double distanceToOrigin) 
+	{
+		final Vector4 zAxis = new Vector4(normalVector);
+		final Vector4 xAxis = new Vector4();
+		final Vector4 yAxis = new Vector4();
+		
+		OrthonormalBasis.fromZAxis( xAxis , yAxis , zAxis );
+		
+		final Vector4 centerOfPlane = normalVector.multiplyAdd( distanceToOrigin , origin ); 
+		final MersenneTwisterFast rnd = twister.get();
+		double u = rnd.nextDouble(false,false)*planeWidth;
+		double v = rnd.nextDouble(false,false)*planeWidth;		
+		centerOfPlane.plusInPlace( xAxis.multiply( u ) , yAxis.multiply( v ) );
+		centerOfPlane.minusInPlace( origin );
+		return centerOfPlane.normalize(); 
 	}
 }

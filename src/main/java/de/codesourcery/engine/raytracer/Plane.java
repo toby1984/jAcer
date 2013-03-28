@@ -47,7 +47,7 @@ public class Plane extends Raytracable {
 	}
 	
 	@Override
-	public Vector4 getColorAtPoint(Vector4 o)
+	public Vector4 sampleTextureColorAtPoint(Vector4 o)
 	{
 		Vector4 p = transform.transformInverse( o );
 	    return material.texture.getColorAt(  ( Math.abs(p.x) % 100d ) / 100.0d , ( Math.abs( p.y ) % 100d / 100d ) );

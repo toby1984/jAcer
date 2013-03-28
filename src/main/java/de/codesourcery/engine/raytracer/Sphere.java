@@ -5,10 +5,12 @@ public class Sphere extends Raytracable {
 
 	private Transformation transform;
 	public double radius;
+	private final Vector4 center;
 	
 	public Sphere(String name,Material material,Vector4 center,double radius) 
 	{
 	    super(name,material);
+	    this.center = new Vector4(center);
 	    this.transform = new Transformation( AffineTransform.translate( center.x , center.y , center.z ) );
 		this.radius = radius;
 	}	
@@ -16,6 +18,7 @@ public class Sphere extends Raytracable {
 	public Sphere(String name,Vector4 center,double radius) 
 	{
 	    super(name);
+	    this.center = new Vector4(center);
 	    this.transform = new Transformation( AffineTransform.translate( center.x , center.y , center.z ) );	    
 		this.radius = radius;
 	}
@@ -54,7 +57,7 @@ public class Sphere extends Raytracable {
 	}
 
 	@Override
-	public Vector4 getColorAtPoint(Vector4 p)
+	public Vector4 sampleTextureColorAtPoint(Vector4 p)
 	{
 //        p = transform.transformInverse( p ); 
         
@@ -86,8 +89,14 @@ public class Sphere extends Raytracable {
 	@Override
 	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates,Camera camera) 
 	{
-		Vector4 t = transform.transform( pointInViewCoordinates );		
-		return t.normalize();
+		Vector4 t = transform.transform( pointInViewCoordinates );
+		if ( material.glossiness != 0.0 ) 
+		{
+			final Vector4 normalVector = t.normalize();
+			return perturbNormalVector( t , normalVector , material.glossiness*10 , 100 ); 
+		}
+		t.normalizeInPlace();
+		return t;
 	}
 	
 	@Override
