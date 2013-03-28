@@ -375,13 +375,20 @@ public final class Raytracer
                 final Ray refractedRay = new Ray( refractOrigin, R4 , incomingRay.bounceCount+1 );
                 
                 IntersectionInfo outer = scene.findNearestIntersection( refractedRay , 0.001 );
-    
+                
                 final Vector4 color;
                 double dist1 = 0;
-                if ( outer != null && outer.solutions[0] > 0.001 ) 
+                if ( outer != null ) 
                 {
-                    dist1 = outer.solutions[0];
-                    color = calculateColorAt( refractedRay , outer , image );
+                	dist1 = outer.solutions[0];
+                	// cast another ray from this point with the original direction
+                    final Ray continuedRay = new Ray( refractedRay.evaluateAt( outer.solutions[0] ), incomingRay.direction , incomingRay.bounceCount+1 );
+                    outer = scene.findNearestIntersection( continuedRay , 0.001 );
+                    if ( outer != null ) {
+                    	color = calculateColorAt( refractedRay , outer , image );
+                    } else {
+                    	color = new Vector4();
+                    }
                 } else {
                     color = new Vector4(0,0,0);
                 }
@@ -408,6 +415,7 @@ public final class Raytracer
         	final double solutionAtIntersection = rayFromLight.solutionAt( intersectionPoint ) - 0.001;
         	
         	final IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0.001 );
+        	// TODO: Handle rays passing through transparent materials
         	if (  occluder == null ||  occluder.solutions[0] > solutionAtIntersection ) // no occlusion or hit is behind intersection point
         	{
         		// calculate diffuse color

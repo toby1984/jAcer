@@ -59,14 +59,9 @@ public class Sphere extends Raytracable {
 	@Override
 	public Vector4 sampleTextureColorAtPoint(Vector4 p)
 	{
-//        p = transform.transformInverse( p ); 
-        
+		p = transform.transformInverse( p );
 	    double r = p.length();
 	    
-        // double v = Math.acos(p.z/r) / Math.PI;
-        // double u = Math.acos( p.x/r * Math.sin (Math.PI * v) ) / 2*Math.PI;     
-        
-	    // ((x^2 + y^2 + z^2)^0.5, arctan(y/x), arccos(z/r))
         double longitude = Math.atan2( p.y , p.x);
         double latitude = Math.acos( p.z / r );
         

@@ -43,7 +43,7 @@ public class RayTracerDemo {
         /**********
          * OBJECTS
          **********/
-        final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
+        final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -200 ,    -500 , -100 ) , 100 );
         final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    -500 , -300 ) , 100 );	
         final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 
@@ -54,17 +54,28 @@ public class RayTracerDemo {
         // p4.material.diffuseColor = new Vector4(0,0,0.2);
         horizontalPlane.material.texture = Texture.load( new File("/home/tobi/workspace/raytracer/src/main/resources/checkers.png" ) );
 
-        final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( -100 , -500 , -600 ) , 200,400,600 );
+        final AxisAlignedCube cube = new AxisAlignedCube( "cube #1",  new Vector4( -100 , -500 , -600 ) , 200,400,600 );
+        
+        final AxisAlignedCube cube2 = new AxisAlignedCube( "cube #2",  new Vector4( 500 , -500 , -200 ) , 200,400,600 );        
         // cube1.transformation( new Transformation( AffineTransform.rotate( 0, -145 , 0 ) , AffineTransform.translate( -600 , -500 , -300 ) ) );
         //		cube1.material.reflectivity(1.0);
         		
 //        leftPlane.material.reflectivity(0.5);
 //        cube1.material.refractionIndex=1.51;
 //        sphere2.material.glossiness = 0.5;
-        sphere1.material.refractionIndex = 1.51;
+        
+        sphere3.material.diffuseColor = new Vector4(1,0,0);
+        leftPlane.material.diffuseColor = new Vector4(0,0,1);
+        verticalPlane.material.diffuseColor = new Vector4(0,0.8,0);      
+        
+//        sphere1.material.refractionIndex = 1.51;
+        sphere1.material.refractionIndex = 1.31;
         sphere2.material.reflectivity(1.0);
+        cube.material.reflectivity(1.0);
+        cube2.material.reflectivity(0.5);
 
-        scene.addObject( cube1 );          
+        scene.addObject(cube2);
+        scene.addObject( cube );          
         scene.addObject( sphere1 ); 
         scene.addObject( sphere2 ); 
         scene.addObject( sphere3 );	
