@@ -287,7 +287,12 @@ public final class Vector4
     public Vector4 multiplyAdd(double toMultiply ,Vector4 toAdd) 
     {
         return new Vector4( x * toMultiply + toAdd.x , y * toMultiply + toAdd.y , z * toMultiply + toAdd.z , w );
-    }    
+    }   
+    
+    public Vector4 multiplyAdd(Vector4 toMultiply ,Vector4 toAdd) 
+    {
+        return new Vector4( x * toMultiply.x + toAdd.x , y * toMultiply.y + toAdd.y , z * toMultiply.z + toAdd.z , w );
+    }     
     
     public void multiplyInPlace(double value) 
     {

@@ -84,7 +84,7 @@ public class AxisAlignedCube extends Raytracable
     {
     	Vector4 p = transform.transform( point );
     	
-        final double EPS = 0.001f;
+        final double EPS = 0.01f;
 
         final Vector4 result;
         if (Math.abs( p.x - max.x) < EPS) // p.x on max.x plane

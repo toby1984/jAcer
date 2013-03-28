@@ -36,40 +36,41 @@ public class RayTracerDemo {
         /**********
          * LIGHTS
          **********/
-        
-        //      scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
-        scene.addObject( new PointLightsource( new Vector4( 300, 0, 400 ) , Color.RED) );
-        //      scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) ); 
+        // scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
+        scene.addObject( new PointLightsource( new Vector4( -50, 800 , 600 ) , new Color(255,0,255 ) ) );
+        // scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) ); 
         
         /**********
          * OBJECTS
          **********/
-
         final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
         final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    -500 , -300 ) , 100 );	
         final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 
-        Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Transformation(AffineTransform.rotate(180, 0, 0)) ); // horizontal plane
-        Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -1000 ) , new Transformation() ); // vertical plane
+        final Plane horizontalPlane = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Transformation(AffineTransform.rotate(180, 0, 0)) ); // horizontal plane
+        final Plane verticalPlane = new Plane( "vertical plane", new Vector4( 0,    0, -1000 ) , new Transformation() ); // vertical plane
+        final Plane leftPlane = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane    
+        
+        // p4.material.diffuseColor = new Vector4(0,0,0.2);
+        horizontalPlane.material.texture = Texture.load( new File("/home/tgierke/workspace/jAcer/src/main/resources/checkers.png" ) );
 
-        //		p4.material.diffuseColor = new Vector4(0,0,0.2);
-        p1.material.texture = Texture.load( new File("/home/tgierke/workspace/jAcer/src/main/resources/checkers.png" ) );
-
-        final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( -250 , -500 , -600 ) , 200,400,600 );
-        		cube1.transformation( new Transformation( AffineTransform.rotate( 0, -145 , 0 ) , AffineTransform.translate( -600 , -500 , -300 ) ) );
+        final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( -100 , -500 , -600 ) , 200,400,600 );
+        // cube1.transformation( new Transformation( AffineTransform.rotate( 0, -145 , 0 ) , AffineTransform.translate( -600 , -500 , -300 ) ) );
         //		cube1.material.reflectivity(1.0);
+        		
+//        leftPlane.material.reflectivity(0.5);
+//        cube1.material.refractionIndex=1.51;
+        sphere1.material.refractionIndex = 1.51;
         sphere2.material.reflectivity(1.0);
-        cube1.material.reflectivity(0.9);
-        Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 
+        scene.addObject( cube1 );          
         scene.addObject( sphere1 ); 
         scene.addObject( sphere2 ); 
         scene.addObject( sphere3 );	
-        scene.addObject( p1 ); // horizontal
-         scene.addObject( p3 ); // left
-         scene.addObject( p4 ); // vertical
-
-        scene.addObject( cube1 );        
+        scene.addObject( horizontalPlane ); // horizontal
+        scene.addObject( leftPlane ); // left
+        scene.addObject( verticalPlane ); // vertical
+      
 
         final Raytracer tracer = new Raytracer( scene );
 

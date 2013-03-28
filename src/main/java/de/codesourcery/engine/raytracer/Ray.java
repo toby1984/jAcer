@@ -7,6 +7,7 @@ public class Ray
 	public Vector4 point; // point on ray
 	public Vector4 direction; // direction
 	public boolean debug = false;
+	public double refractionIndex=1.0; // refraction index at the point of origin
 	
 	public Ray(Vector4 u, Vector4 v) 
 	{

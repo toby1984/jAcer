@@ -348,13 +348,56 @@ public final class Raytracer
         
         final Material material = intersection.object.material;
         
-        Vector4 sumDiff=new Vector4(0,0,0);
-        Vector4 sumSpec=new Vector4(0,0,0);
-        
         if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
         {
             renderRay(image, getViewPlane(), intersectionPoint, intersectionPoint.plus( normalAtIntersection.multiply( 100 ) ) , RayType.NORMAL);                    
         } 
+        
+        /*
+         * REFRACTION
+         */
+        Vector4 finalColor = scene.ambientColor;        
+        if ( material.refractionIndex != incomingRay.refractionIndex ) 
+        {
+            double n = incomingRay.refractionIndex / material.refractionIndex;           
+            double CosThetaI = normalAtIntersection.flip().dotProduct( incomingRay.direction );
+            double SinThetaI = Math.sqrt(1.0 - CosThetaI*CosThetaI);
+            double SinThetaT = n*SinThetaI;
+            
+            if ( SinThetaT*SinThetaT < 1.0d )
+            {
+                double CosThetaT = Math.sqrt(1.0 - SinThetaT*SinThetaT);
+                
+                final Vector4 R4 = incomingRay.direction.multiply( n ).minus( normalAtIntersection.multiply( n*CosThetaI+CosThetaT ) );
+                R4.normalizeInPlace();
+                
+                final Vector4 refractOrigin = intersectionPoint.plus(  R4.multiply( 0.001 ) ); // move origin of ray a little bit INTO the object
+                final Ray refractedRay = new Ray( refractOrigin, R4 , incomingRay.bounceCount+1 );
+                
+                IntersectionInfo outer = scene.findNearestIntersection( refractedRay , 0.001 );
+    
+                final Vector4 color;
+                double dist1 = 0;
+                if ( outer != null && outer.solutions[0] > 0.001 ) 
+                {
+                    dist1 = outer.solutions[0];
+                    color = calculateColorAt( refractedRay , outer , image );
+                } else {
+                    color = new Vector4(0,0,0);
+                }
+    
+                // Beer's Law
+                final Vector4 absorbance = material.diffuseColor.multiply( 0.15 * dist1 * -1);
+                final Vector4 transparency = new Vector4( Math.exp(absorbance.x), Math.exp(absorbance.y), Math.exp(absorbance.z) );
+                return finalColor.plus( color.multiplyAdd(  transparency ,  color ) );
+            }
+        }
+           
+        /*
+         * DIRECT LIGHTING
+         */
+        Vector4 sumDiff=new Vector4(0,0,0);
+        Vector4 sumSpec=new Vector4(0,0,0);
         
         for ( Lightsource light : scene.lightsources ) 
         {
@@ -400,13 +443,13 @@ public final class Raytracer
         if ( material.texture != null ) 
         {
              final double weight = sumDiff.clamp(0,1).length() / 1.73205080757d; //  1.73205080757d = Math.sqrt( 1^2 + 1^2 + 1^2 )
-            sumDiff = intersection.object.getColorAtPoint( intersectionPoint ).multiply( weight );
+            sumDiff = intersection.object.getColorAtPoint( intersectionPoint ).straightMultiply( sumDiff );
             sumSpec = new Vector4(0,0,0);
         } else {
             sumDiff = sumDiff.multiply( 1 - material.reflectivity() );
         }
         
-        Vector4 finalColor = scene.ambientColor.plus( sumDiff , sumSpec);
+        finalColor = finalColor.plus( sumDiff , sumSpec);
         
 //        if ( material.reflectivity() < 1 && incomingRay.bounceCount < 4 ) 
 //        {
@@ -423,7 +466,7 @@ public final class Raytracer
 //        		if ( hit != null && hit.object != intersection.object ) 
 //        		{
 //        		    hitCount++;
-//        		    global.plusInPlace( calculateColorAt( secondaryRay , hit ) );
+//        		    global.plusInPlace( calculateColorAt( secondaryRay , hit , image  ) );
 //        		}
 //        	}
 //        	if ( hitCount > 0 ) {
@@ -431,7 +474,9 @@ public final class Raytracer
 //        	}
 //        }
 
-        // handle reflection
+        /*
+         * REFLECTION
+         */
         if ( material.reflectivity() != 0.0d && incomingRay.bounceCount < 6 ) 
         {
         	// calculate reflected ray
