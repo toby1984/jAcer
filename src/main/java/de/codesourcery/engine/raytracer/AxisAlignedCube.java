@@ -24,7 +24,7 @@ public class AxisAlignedCube extends Raytracable
     @Override
     public String toString()
     {
-        return "Cube[ min: "+min+" / max: "+max+" , transform: "+transform+" ]";
+        return "Cube[ "+name+" , min: "+min+" / max: "+max+" , transform: "+transform+" ]";
     }
     
     public static void main(String[] args)
