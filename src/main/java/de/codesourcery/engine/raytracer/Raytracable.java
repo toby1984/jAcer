@@ -5,19 +5,9 @@ public abstract class Raytracable {
 
 	public Material material;
 	
-	private Matrix transformation = null;
-	
-	public final Matrix transformation() {
-		return transformation;
-	}
-	
-	public void transformation(Matrix m) {
-		transformation = m;
-	}	
-	
 	public abstract IntersectionInfo intersect(Ray ray);
 	
-	public abstract Vector4 normalVectorAt(Vector4 point);
+	public abstract Vector4 normalVectorAt(Vector4 point,Camera camera);
 
 	public final String name;
 	

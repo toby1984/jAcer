@@ -35,9 +35,9 @@ public class IntersectionInfo {
 		return this;
 	}	
 	
-	public Vector4 normalAtIntersection() 
+	public Vector4 normalAtIntersection(Camera camera)
 	{
-		return object.normalVectorAt( nearestIntersectionPoint );
+		return object.normalVectorAt( nearestIntersectionPoint , camera );
 	}
 	
 	@Override

@@ -23,272 +23,322 @@ import javax.swing.SwingUtilities;
 
 public class RayTracerDemo {
 
-    private static final Dimension IMAGE_SIZE = new Dimension(300,300);
-    
-	public static void main(String[] args) throws Exception {
+    private static final Dimension IMAGE_SIZE = new Dimension(400,400);
 
-		final Vector4 eyePosition = new Vector4( -50.0,-250.0,1900.0 );
-		final Camera camera = new Camera();
-		camera.setEyePosition( eyePosition , 0 , 0 );
+    public static void main(String[] args) throws Exception {
 
-		final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
-		final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    -500 , -200 ) , 100 );	
-		final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
+        final Vector4 eyePosition = new Vector4( -50.0,-250.0,1900.0 );
+        final Camera camera = new Camera();
+        camera.setEyePosition( eyePosition , 0 , 0 );
+        
+        final Scene scene = new Scene(camera);
+        
+        /**********
+         * LIGHTS
+         **********/
+        
+        //      scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
+        scene.addObject( new PointLightsource( new Vector4( 300, 0, 400 ) , Color.RED) );
+        //      scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) ); 
+        
+        /**********
+         * OBJECTS
+         **********/
 
-//		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Vector4( 0 , 100 ,   0 ) ); // horizontal plane
-		Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Transformation(AffineTransform.rotate(180, 0, 0)) ); // horizontal plane
-		Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -700 ) , new Transformation() ); // vertical plane
-		
-//		p4.material.diffuseColor = new Vector4(0,0,0.2);
-		p1.material.texture = Texture.load( new File("/home/tobi/workspace/raytracer/src/main/resources/checkers.png" ) );
-		
-		final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( 500 , -500 , 0 ) , 200,200,200 );
-//		cube1.material.reflectivity(1.0);
-		sphere2.material.reflectivity(1.0);
+        final Sphere sphere1 = new Sphere( "sphere #1", new Vector4( -150 ,    0 , -100 ) , 100 );
+        final Sphere sphere2 = new Sphere( "sphere #2", new Vector4(  250 ,    -500 , -300 ) , 100 );	
+        final Sphere sphere3 = new Sphere( "sphere #3", new Vector4( 50 , -600 , -150 ) , 100 );
 
-		Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
+        Plane p1 = new Plane( "horizontal plane", new Vector4( 0, -600,    0 ) , new Transformation(AffineTransform.rotate(180, 0, 0)) ); // horizontal plane
+        Plane p4 = new Plane( "vertical plane", new Vector4( 0,    0, -1000 ) , new Transformation() ); // vertical plane
 
-		final Scene scene = new Scene(camera);
-		scene.addObject( sphere1 );
-		scene.addObject( sphere2 );
-		scene.addObject( sphere3 );	
-		scene.addObject( p1 );
-		scene.addObject( p3 );		
-		scene.addObject( p4 );
+        //		p4.material.diffuseColor = new Vector4(0,0,0.2);
+        p1.material.texture = Texture.load( new File("/home/tgierke/workspace/jAcer/src/main/resources/checkers.png" ) );
 
-		//        scene.addObject( cube1 );        
+        final AxisAlignedCube cube1 = new AxisAlignedCube( "vertical plane",  new Vector4( -250 , -500 , -600 ) , 200,400,600 );
+        		cube1.transformation( new Transformation( AffineTransform.rotate( 0, -145 , 0 ) , AffineTransform.translate( -600 , -500 , -300 ) ) );
+        //		cube1.material.reflectivity(1.0);
+        sphere2.material.reflectivity(1.0);
+        cube1.material.reflectivity(0.9);
+        Plane p3 = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane		
 
-		//		scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
-		scene.addObject( new PointLightsource( new Vector4( 400, 400, 500 ) , Color.RED) );
-		//		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.BLUE) );		
+        scene.addObject( sphere1 ); 
+        scene.addObject( sphere2 ); 
+        scene.addObject( sphere3 );	
+        scene.addObject( p1 ); // horizontal
+         scene.addObject( p3 ); // left
+         scene.addObject( p4 ); // vertical
 
-		final Raytracer tracer = new Raytracer( scene );
+        scene.addObject( cube1 );        
 
-		final RenderPanel panel = new RenderPanel(tracer);
+        final Raytracer tracer = new Raytracer( scene );
 
-		panel.setMinimumSize( IMAGE_SIZE );
-		panel.setPreferredSize( IMAGE_SIZE );		
+        final RenderPanel panel = new RenderPanel(tracer);
 
-		final JFrame frame = new JFrame("Tracer V0.1");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
-		frame.getContentPane().setLayout( new GridBagLayout() );
+        panel.setMinimumSize( IMAGE_SIZE );
+        panel.setPreferredSize( IMAGE_SIZE );		
 
-		final GridBagConstraints constraints = new GridBagConstraints();
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.gridheight=GridBagConstraints.REMAINDER;
-		constraints.gridwidth=GridBagConstraints.REMAINDER;
-		constraints.weightx=1.0;
-		constraints.weighty=1.0;
+        final JFrame frame = new JFrame("Tracer V0.1");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE );
+        frame.getContentPane().setLayout( new GridBagLayout() );
 
-		frame.getContentPane().add( panel , constraints );
-		frame.pack();
-		frame.setVisible( true );
-		frame.repaint();
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridheight=GridBagConstraints.REMAINDER;
+        constraints.gridwidth=GridBagConstraints.REMAINDER;
+        constraints.weightx=1.0;
+        constraints.weighty=1.0;
 
-		final float increment = 50;
+        frame.getContentPane().add( panel , constraints );
+        frame.pack();
+        frame.setVisible( true );
+        frame.repaint();
 
-		frame.addKeyListener( new KeyAdapter() 
-		{
-			@Override
-			public void keyPressed(KeyEvent e) 
-			{
-				switch(e.getKeyCode() ) 
-				{
-					case KeyEvent.VK_SPACE:
-						if ( tracer.getSamplesPerPixel() == 1 ) {
-							tracer.setSamplesPerPixel(16); 
-						} else {
-							tracer.setSamplesPerPixel(1);
-						}
-						break;
-					case KeyEvent.VK_PLUS:
-						camera.moveUp( increment );
-						break;
-					case KeyEvent.VK_MINUS:
-						camera.moveDown( increment );
-						break;
-					case KeyEvent.VK_W:
-						camera.moveForward(increment);
-						break;
-					case KeyEvent.VK_S:
-						camera.moveBackward(increment);
-						break;
-					case KeyEvent.VK_A:
-						camera.strafeLeft(increment);
-						break;
-					case KeyEvent.VK_D:
-						camera.strafeRight(increment);
-						break;
-					case KeyEvent.VK_Q:
-						camera.rotate(-1,0);
-						break;
-					case KeyEvent.VK_E:
-						camera.rotate(1,0);
-						break;	
-					case KeyEvent.VK_Y:
-						camera.rotate(0,-1);
-						break;
-					case KeyEvent.VK_C:
-						camera.rotate(0,1);
-						break;	
-					case KeyEvent.VK_HOME:
-						try 
-						{
-							final File file = new File("/tmp/trace.png");
-							panel.saveImage( file );
-							System.out.println("Image saved to "+file.getAbsolutePath());
-						} 
-						catch (IOException e1) 
-						{
-							System.err.println("Saving image failed");
-						}
-						break;
-					default:
-						return;
-				}
-				System.out.println( tracer.scene.camera );
-				panel.recalculate();				
-			}
-		});
-	}
+        frame.addKeyListener( panel.keyAdapter );
+    }
 
-	protected static final class RenderPanel extends JPanel {
+    protected static final class RenderPanel extends JPanel {
 
-		private final Object LOCK = new Object();
-		private final AtomicBoolean isCalculating = new AtomicBoolean(false);
+        private final Object IMAGE_LOCK = new Object();
 
-		public final Raytracer tracer;
+        // @GuardedBy( IMAGE_LOCK )
+        private final AtomicBoolean isCalculating = new AtomicBoolean(false);
 
-		public RenderPanel(Raytracer tracer) {
-			this.tracer = tracer;
-		}
+        // @GuardedBy( IMAGE_LOCK )        
+        private BufferedImage image = null; 
+        
+        public final Raytracer tracer;
 
-		private BufferedImage image = null; 
+        private static final float increment = 50;
 
-		{
-			addMouseListener( new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e)
-				{
-					if ( e.getButton() == MouseEvent.BUTTON1 ) 
-					{
-						Point point = e.getPoint();
-						System.out.println("Mouse clicked at: "+point);
-						System.out.print("Point on view plane: ");
-						System.out.println("CLICKED: "+tracer.getObjectAt( getWidth() , getHeight() , point));
-					}
-				}
-			});			    
-		}
+        private final KeyAdapter keyAdapter =  new KeyAdapter() 
+        {
+            @Override
+            public void keyPressed(KeyEvent e) 
+            {
+                synchronized( IMAGE_LOCK ) 
+                {
+                    if ( isCalculating.get() ) {
+                        return;
+                    }
+                    handleKeyPress( e );
+                }
+            }
+            
+            private void handleKeyPress(KeyEvent e) 
+            {
+                final Camera camera = tracer.scene.camera;
+                switch(e.getKeyCode() ) 
+                {
+                    case KeyEvent.VK_SPACE:
+                        if ( tracer.getSamplesPerPixel() == 1 ) {
+                            tracer.setSamplesPerPixel(16); 
+                        } else {
+                            tracer.setSamplesPerPixel(1);
+                        }                               
+                        break;
+                    case KeyEvent.VK_PLUS:
+                        camera.moveUp( increment );                             
+                        break;
+                    case KeyEvent.VK_MINUS:
+                        camera.moveDown( increment );
+                        break;
+                    case KeyEvent.VK_W:
+                        camera.moveForward(increment);                              
+                        break;
+                    case KeyEvent.VK_S:
+                        camera.moveBackward(increment);
+                        break;
+                    case KeyEvent.VK_A:
+                        camera.strafeLeft(increment);
+                        break;
+                    case KeyEvent.VK_D:
+                        camera.strafeRight(increment);                              
+                        break;
+                    case KeyEvent.VK_Q:
+                        camera.rotate(-1,0);
+                        break;
+                    case KeyEvent.VK_E:
+                        camera.rotate(1,0);
+                        break;  
+                    case KeyEvent.VK_Y:
+                        camera.rotate(0,-1);
+                        break;
+                    case KeyEvent.VK_C:
+                        camera.rotate(0,1);                                
+                        break;  
+                    case KeyEvent.VK_HOME:
+                        try 
+                        {
+                            final File file = new File("/tmp/trace.png");
+                            saveImage( file );
+                            System.out.println("Image saved to "+file.getAbsolutePath());
+                        } 
+                        catch (IOException e1) 
+                        {
+                            System.err.println("Saving image failed");
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                System.out.println( tracer.scene.camera );
+                recalculate();                        
+            }
+        };
 
-		public void saveImage(File file) throws IOException 
-		{
-			BufferedImage tmp;
-			do {
-				synchronized( LOCK ) 
-				{
-					tmp = image;
-				}
+        public RenderPanel(final Raytracer tracer) 
+        {
+            this.tracer = tracer;
+            addMouseListener( new MouseAdapter() 
+            {
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    if ( e.getButton() == MouseEvent.BUTTON1 ) 
+                    {
+                        Point point = e.getPoint();
+                        System.out.println("CLICKED: "+tracer.getObjectAt( getWidth() , getHeight() , point) );
+                    } 
+                    else if ( e.getButton() == MouseEvent.BUTTON3 ) 
+                    {
+                        // map view coordinates to points on view plane
+                        final Vector4 pointOnViewPlane = tracer.screenToPointOnViewPlane( getWidth() , getHeight() , e.getPoint().x , e.getPoint().y );
+                        System.out.println("Viewplane width: "+tracer.scene.camera.frustum.getNearPlaneHeight());
+                        System.out.println("Viewplane height: "+tracer.scene.camera.frustum.getNearPlaneHeight());
+                        System.out.println("Point on view plane: "+pointOnViewPlane);
+                        final Plane viewPlane = tracer.getViewPlane();
+                        synchronized( IMAGE_LOCK ) 
+                        {
+                            if ( image != null ) {
+                                System.out.println("Tracing single ray");					            
+                                tracer.tracePrimaryRay( viewPlane , new Vector4(0,0,0) , pointOnViewPlane , image , true );
+                                getGraphics().drawImage( image , 0 , 0 , getWidth() , getHeight(), null );					            
+                            } else {
+                                System.out.println("No image ?");
+                            }
+                        }
+                    }
+                }
+            });			    
+        }
 
-				if ( tmp != null ) {
-					break;
-				}
+        public void saveImage(File file) throws IOException 
+        {
+            BufferedImage tmp;
+            do {
+                synchronized( IMAGE_LOCK ) 
+                {
+                    tmp = image;
+                }
 
-				trace( getWidth() , getHeight() , true );
+                if ( tmp != null ) {
+                    break;
+                }
 
-				synchronized( LOCK ) 
-				{
-					tmp = image;
-				}
-				if ( tmp == null ) {
-					System.err.println("No image ???");
-					return;
-				}				
-			} while( true );
+                trace( getWidth() , getHeight() , true );
 
-			ImageIO.write( tmp , "PNG" , file );
-		}
+                synchronized( IMAGE_LOCK ) 
+                {
+                    tmp = image;
+                }
+                if ( tmp == null ) {
+                    System.err.println("No image ???");
+                    return;
+                }				
+            } while( true );
 
-		public void recalculate() 
-		{
-			trace(getWidth() , getHeight() , false );
-		}
+            ImageIO.write( tmp , "PNG" , file );
+        }
 
-		private void trace(final int w,final int h,boolean waitForCompletion) 
-		{
-			if ( isCalculating.compareAndSet( false, true ) )
-			{
-				final CountDownLatch latch = new CountDownLatch(1);
-				final Thread tracerThread = new Thread() 
-				{
-					public void run() 
-					{
-						System.out.println("Tracing "+w+" x "+h);	
-						long time = -System.currentTimeMillis();
-						try 
-						{
-							final BufferedImage newImage = tracer.trace( w , h );
-							time += System.currentTimeMillis();
-							synchronized( LOCK ) 
-							{
-								image = newImage;
-							}
+        public void recalculate() 
+        {
+            trace(getWidth() , getHeight() , false );
+        }
 
-							SwingUtilities.invokeAndWait( new Runnable() 
-							{
-								public void run() 
-								{
-									RenderPanel.this.repaint();										
-								}
-							}
-									);								
-						} catch (Exception e) {
-							e.printStackTrace();
-						} 
-						finally 
-						{
-							System.out.println("Finished tracing "+w+" x "+h+" [ "+time+" millis ]");
-							latch.countDown();
-							isCalculating.set( false );
-						}
-					}
-				};
-				tracerThread.start();
+        private void trace(final int w,final int h,boolean waitForCompletion) 
+        {
+            synchronized( IMAGE_LOCK) 
+            {
+                if ( ! isCalculating.compareAndSet( false, true ) )
+                {
+                    return;
+                }
+            }
 
-				if ( waitForCompletion ) 
-				{
-					try 
-					{
-						latch.await();
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-				}					
-			}
-		}
-		@Override
-		public void paint(Graphics g) 
-		{
-			super.paint(g);
+            final CountDownLatch latch = new CountDownLatch(1);
+            final Thread tracerThread = new Thread() 
+            {
+                public void run() 
+                {
+                    System.out.println("Tracing "+w+" x "+h);	
+                    long time = -System.currentTimeMillis();
+                    try 
+                    {
+                        final BufferedImage newImage = tracer.trace( w , h );
+                        time += System.currentTimeMillis();
+                        synchronized( IMAGE_LOCK ) 
+                        {
+                            image = newImage;
+                        }
 
-			final int w = getWidth();
-			final int h = getHeight();
+                        SwingUtilities.invokeAndWait( new Runnable() 
+                        {
+                            public void run() 
+                            {
+                                RenderPanel.this.repaint();										
+                            }
+                        }
+                                );								
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } 
+                    finally 
+                    {
+                        System.out.println("Finished tracing "+w+" x "+h+" [ "+time+" millis ]");
+                        // ordering sync(LOCK) -> latch -> boolean flag is important here, see doWithLock()
+                        latch.countDown();		
+                        synchronized( IMAGE_LOCK) 
+                        {
+                            isCalculating.set( false );
+                        }
+                    }
+                }
+            };
+            tracerThread.start();
 
-			final BufferedImage img;
-			synchronized( LOCK ) 
-			{
-				img = image;
-			}
+            if ( waitForCompletion ) 
+            {
+                try 
+                {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }					
+        }
+        @Override
+        public void paint(Graphics g) 
+        {
+            super.paint(g);
 
-			if ( img == null || img.getWidth() != w || img.getHeight() != h ) 
-			{
-				trace(w,h,false);
-			} 
-			else 
-			{
-				g.drawImage( img , 0 , 0 , w , h , null );
-			}
-		}
+            final int w = getWidth();
+            final int h = getHeight();
 
-	}
+            final BufferedImage img;
+            synchronized( IMAGE_LOCK ) 
+            {
+                img = image;
+            }
+
+            if ( img == null || img.getWidth() != w || img.getHeight() != h ) 
+            {
+                trace(w,h,false);
+            } 
+            else 
+            {
+                g.drawImage( img , 0 , 0 , w , h , null );
+            }
+        }
+    }
 }

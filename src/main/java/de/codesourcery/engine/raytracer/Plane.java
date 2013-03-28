@@ -54,7 +54,7 @@ public class Plane extends Raytracable {
 	}
 
 	@Override
-	public Vector4 normalVectorAt(Vector4 point) {
+	public Vector4 normalVectorAt(Vector4 point,Camera camera) {
 		return unitNormalVector;
 	}
 	

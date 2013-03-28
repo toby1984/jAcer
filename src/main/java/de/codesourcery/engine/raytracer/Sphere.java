@@ -84,7 +84,7 @@ public class Sphere extends Raytracable {
 	}
 	
 	@Override
-	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates) 
+	public Vector4 normalVectorAt(Vector4 pointInViewCoordinates,Camera camera) 
 	{
 		Vector4 t = transform.transform( pointInViewCoordinates );		
 		return t.normalize();

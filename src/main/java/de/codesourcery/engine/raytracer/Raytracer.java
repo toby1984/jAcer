@@ -1,5 +1,7 @@
 package de.codesourcery.engine.raytracer;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ public final class Raytracer
 	private ThreadPoolExecutor threadpool;
 	
 	private volatile int samplesPerPixel = 1;
+	
+	private static boolean ENABLE_RAY_DEBUGGING=true;
 	
 	public Raytracer(Scene scene) 
 	{
@@ -44,29 +48,37 @@ public final class Raytracer
 	
 	public IntersectionInfo getObjectAt(int imageWidth,int imageHeight,Point point)
 	{
-	        final int centerX = imageWidth / 2;
-	        final int centerY = imageHeight / 2;
-	        
-	        final double scaleX = imageWidth / scene.camera.frustum.getNearPlaneWidth();
-	        final double scaleY = imageHeight / scene.camera.frustum.getNearPlaneHeight();
-
-	        double worldX = (point.x - centerX) / scaleX;
-	        double worldY = (centerY - point.y ) / scaleY;
-	        
-            // calculate point on view plane
-	        final Vector4 xAxis = scene.camera.xAxis.normalize();
-	        final Vector4 yAxis = scene.camera.yAxis.normalize();
-	        
-	        final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.multiply(-1).normalize();
-	        final Plane viewPlane = new Plane( "viewPlane", scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.multiply(-1) );	        
-            final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( worldX ) ).plus( yAxis.multiply( worldY) );
+            final Vector4 pointOnViewPlane = screenToPointOnViewPlane(imageWidth,imageHeight , point.x ,point.y );
             
             // cast ray from camera position through view plane
             final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ).normalize() );
             
-            // TODO: Performance - intersection ray <-> plane could use pre-calculated values !!
+            final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
+            final Plane viewPlane = new Plane( "viewPlane", scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );     
+            
             final double tStart=viewPlane.intersect( ray ).solutions[0];
             return scene.findNearestIntersection(ray , tStart );	        
+	}
+	
+	public Vector4 screenToPointOnViewPlane(int imageWidth,int imageHeight,int screenX,int screenY) 
+	{
+        final int centerX = imageWidth / 2;
+        final int centerY = imageHeight / 2;
+        
+        final double scaleX = imageWidth / scene.camera.frustum.getNearPlaneWidth();
+        final double scaleY = imageHeight / scene.camera.frustum.getNearPlaneHeight();
+
+        double worldX = ( screenX - centerX) / scaleX;
+        double worldY = (centerY - screenY ) / scaleY;
+        
+        // calculate point on view plane
+        final Vector4 xAxis = scene.camera.xAxis.normalize();
+        final Vector4 yAxis = scene.camera.yAxis.normalize();
+        
+        final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
+        final Plane viewPlane = new Plane( "viewPlane", scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );          
+        final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( worldX ) , yAxis.multiply( worldY) );
+        return pointOnViewPlane;
 	}
 	
 	public synchronized BufferedImage trace(final int imageWidth, final int imageHeight) {
@@ -155,10 +167,7 @@ public final class Raytracer
         final Vector4 xAxis = scene.camera.xAxis.normalize();
         final Vector4 yAxis = scene.camera.yAxis.normalize();        
         
-        final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
-        
-        // hint: code assumes that 'pointOnPlane' is the center of the view plane
-        final Plane viewPlane = new Plane( "viewPlane",scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );
+        final Plane viewPlane = getViewPlane();
         final int sampleCount = this.samplesPerPixel;
         final double factor = 1.0/sampleCount;
         
@@ -174,17 +183,7 @@ public final class Raytracer
                     double viewY = y-rnd.get().nextDouble()*stepY;
                     
                     final Vector4 pointOnViewPlane = viewPlane.pointOnPlane.plus( xAxis.multiply( viewX ) , yAxis.multiply( viewY ) );
-                    
-                    // cast ray from camera position through view plane
-                    final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ).normalize() );
-                    final double tStart  = viewPlane.intersect( ray ).solutions[0];
-                    
-                    // find nearest intersection that is BEHIND the view plane
-                    final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
-                    if ( intersection != null ) 
-                    {
-                        color.plusInPlace( calculateColorAt(ray,intersection) );
-                    }
+                    tracePrimaryRay(viewPlane, color, pointOnViewPlane,image,false);
                 }
 
                 final int r = (int) (color.r() * factor * 255.0);
@@ -201,6 +200,103 @@ public final class Raytracer
             }
         }	    
 	}
+	
+	public Plane getViewPlane() 
+	{
+        final Vector4 viewPlaneNormalVector = scene.camera.viewOrientation.flip().normalize();
+        
+        // hint: code assumes that 'pointOnPlane' is the center of the view plane
+        return new Plane( "viewPlane",scene.camera.frustum.getNearPlane().pointOnPlane , viewPlaneNormalVector.flip() );
+	}
+
+    public void tracePrimaryRay(final Plane viewPlane, Vector4 color, final Vector4 pointOnViewPlane,BufferedImage image,boolean debug)
+    {
+        // cast ray from camera position through view plane
+        final Ray ray = new Ray( scene.camera.eyePosition , pointOnViewPlane.minus( scene.camera.eyePosition ).normalize() );
+        final double tStart  = viewPlane.intersect( ray ).solutions[0];
+        
+        // find nearest intersection that is BEHIND the view plane
+        final IntersectionInfo intersection = scene.findNearestIntersection(ray , tStart );
+        if ( intersection != null ) 
+        {
+            if ( ENABLE_RAY_DEBUGGING && debug ) {
+                ray.debug = true;
+            }            
+            color.plusInPlace( calculateColorAt(ray,intersection,image) );
+        }
+    }
+    
+    protected static enum RayType {
+        RAY_TO_LIGHT,
+        REFLECTED,
+        NORMAL;
+    }
+    
+    private void renderRay(BufferedImage image,Plane viewPlane,Vector4 p1,Vector4 p2,RayType type) 
+    {
+        final Graphics graphics = image.getGraphics();
+        
+        Point viewP1 = modelToScreen( p1 , viewPlane , image.getWidth() , image.getHeight() );
+        Point viewP2 = modelToScreen( p2 , viewPlane , image.getWidth() , image.getHeight() );
+
+        final Color color;
+        switch( type ) 
+        {   
+            case RAY_TO_LIGHT:
+                color=Color.WHITE;
+                break;
+            case REFLECTED:
+                color=Color.BLUE;
+                break;          
+            case NORMAL:
+                color=Color.GREEN;
+                break;                  
+            default:
+                throw new RuntimeException("Unknown ray type: "+type);
+        }
+        graphics.setColor( color );
+        graphics.drawLine(viewP1.x , viewP1.y , viewP2.x , viewP2.y );
+    }
+    
+    public Point modelToScreen(Vector4 pointInWorldCoordinates,Plane viewPlane,int imageWidth,int imageHeight) 
+    {
+        System.out.println("Mapping "+pointInWorldCoordinates);
+        
+        // cast ray from point to camera
+        final Vector4 direction = scene.camera.eyePosition.minus(pointInWorldCoordinates).normalize();
+        final Ray r = new Ray( pointInWorldCoordinates , direction );
+        
+        // calculate intersection with view plane
+        final IntersectionInfo i1= viewPlane.intersect( r );
+        final Vector4 nearestIntersectionPoint = r.evaluateAt( i1.solutions[0] );
+        System.out.println("Intersection with view plane "+nearestIntersectionPoint);
+        
+        // map point on view plane to screen coordinates
+        
+        // calculate view plane rotation relative to 
+        // default view plane in untransformed coordinates with origin (0,0,0) and normal vector (0,0,1)
+        
+        Matrix invMatrix = LinAlgUtils.rotY( 360 - scene.camera.rotAngleY ).multiply( LinAlgUtils.rotX( scene.camera.rotAngleX ) );
+        
+        Vector4 pointOnViewPlane = nearestIntersectionPoint.minus(scene.camera.eyePosition ).multiply( invMatrix );
+        System.out.println("Transformed point on view plane "+pointOnViewPlane);
+
+        double nw = scene.camera.frustum.getNearPlaneWidth();
+        double nh = scene.camera.frustum.getNearPlaneHeight();
+        
+        double scaleX = imageWidth / nw;
+        double scaleY = imageHeight / nh;
+        
+        final int centerX = imageWidth / 2;
+        final int centerY = imageHeight / 2;
+        
+        final double x = centerX - pointOnViewPlane.x*scaleX;
+        final double y = centerY - pointOnViewPlane.y*scaleY;
+        
+        final Point result = new Point((int) Math.round(x),(int) Math.round(y));
+        System.out.println("Mapped "+pointInWorldCoordinates+" -> ("+x+" , "+y+")");
+        return result;
+    }
 	
 	protected static final class Slice {
 	    
@@ -245,15 +341,20 @@ public final class Raytracer
 		};
 	};
 
-    private Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection)
+    private Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection,BufferedImage image)
     {
-        final Vector4 normalAtIntersection = intersection.normalAtIntersection();
+        final Vector4 normalAtIntersection = intersection.normalAtIntersection(scene.camera);
         final Vector4 intersectionPoint = intersection.nearestIntersectionPoint;
         
         final Material material = intersection.object.material;
         
         Vector4 sumDiff=new Vector4(0,0,0);
         Vector4 sumSpec=new Vector4(0,0,0);
+        
+        if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
+        {
+            renderRay(image, getViewPlane(), intersectionPoint, intersectionPoint.plus( normalAtIntersection.multiply( 100 ) ) , RayType.NORMAL);                    
+        } 
         
         for ( Lightsource light : scene.lightsources ) 
         {
@@ -268,24 +369,31 @@ public final class Raytracer
         	{
         		// calculate diffuse color
                 final Vector4 vectorToLight = light.position.minus( intersectionPoint ).normalize();
-        		double dotProduct = Math.max( 0 , normalAtIntersection.dotProduct( vectorToLight ) );
-        		
-        		sumDiff.x += (material.diffuseColor.x * light.diffuseColor.x)*dotProduct;
-        		sumDiff.y += (material.diffuseColor.y * light.diffuseColor.y)*dotProduct;
-        		sumDiff.z += (material.diffuseColor.z * light.diffuseColor.z)*dotProduct;
                 
-        		// specular color
-        		if ( material.reflectivity() == 0 ) 
-        		{
-        		    // hint: reflect() returns a normalized vector  
-        		    Vector4 reflected = Raytracable.reflect( rayFromLight.direction , normalAtIntersection );
-        		    double eyeReflectionAngle = Math.max( 0 , normalAtIntersection.dotProduct( reflected ) );
-        		    double fspec = Math.pow( eyeReflectionAngle , material.shininess );
-        		
-                    sumSpec.x += (material.specularColor.x * light.specularColor.x)*fspec;
-                    sumSpec.y += (material.specularColor.y * light.specularColor.y)*fspec;
-                    sumSpec.z += (material.specularColor.z * light.specularColor.z)*fspec;
-        		}
+                double dotProduct = normalAtIntersection.dotProduct( vectorToLight );
+                if ( dotProduct > 0 ) 
+                {
+                    if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
+                    {
+                        renderRay(image, getViewPlane(), intersectionPoint, light.position , RayType.RAY_TO_LIGHT);
+                    }                    
+            		sumDiff.x += (material.diffuseColor.x * light.diffuseColor.x)*dotProduct;
+            		sumDiff.y += (material.diffuseColor.y * light.diffuseColor.y)*dotProduct;
+            		sumDiff.z += (material.diffuseColor.z * light.diffuseColor.z)*dotProduct;
+                    
+            		// specular color
+            		if ( material.reflectivity() == 0 ) 
+            		{
+            		    // hint: reflect() returns a normalized vector  
+            		    Vector4 reflected = Raytracable.reflect( rayFromLight.direction , normalAtIntersection );
+            		    double eyeReflectionAngle = Math.max( 0 , normalAtIntersection.dotProduct( reflected ) );
+            		    double fspec = Math.pow( eyeReflectionAngle , material.shininess );
+            		
+                        sumSpec.x += (material.specularColor.x * light.specularColor.x)*fspec;
+                        sumSpec.y += (material.specularColor.y * light.specularColor.y)*fspec;
+                        sumSpec.z += (material.specularColor.z * light.specularColor.z)*fspec;
+            		}
+                }
         	} 
         }
         
@@ -324,16 +432,22 @@ public final class Raytracer
 //        }
 
         // handle reflection
-        if ( material.reflectivity() != 0.0d && incomingRay.bounceCount < 4 ) 
+        if ( material.reflectivity() != 0.0d && incomingRay.bounceCount < 6 ) 
         {
         	// calculate reflected ray
         	final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
         	// hint: reflect() already returns a normalized vector so need to normalize it here
         	final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
+        	if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
+        	    ray.debug = true;
+        	}
         	final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
         	if ( hit != null ) 
         	{
-        		Vector4 refColor = calculateColorAt( ray , hit );
+        	    if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
+        	        renderRay( image , getViewPlane() , ray.point , ray.evaluateAt( hit.solutions[0] ) , RayType.REFLECTED );
+        	    }
+        		Vector4 refColor = calculateColorAt( ray , hit , image );
         		finalColor = finalColor.multiplyAdd( 1 - material.reflectivity() , refColor );
         	} 
         }

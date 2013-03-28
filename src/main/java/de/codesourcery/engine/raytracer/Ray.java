@@ -6,6 +6,7 @@ public class Ray
 	public int bounceCount=0;
 	public Vector4 point; // point on ray
 	public Vector4 direction; // direction
+	public boolean debug = false;
 	
 	public Ray(Vector4 u, Vector4 v) 
 	{

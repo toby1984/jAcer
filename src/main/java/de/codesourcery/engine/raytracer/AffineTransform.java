@@ -31,6 +31,12 @@ public abstract class AffineTransform
 			this.scaleZ = scaleZ;
 		}
 		
+        @Override
+        public String toString()
+        {
+            return "Scaling[ x: "+scaleX+" , y: "+scaleY+" , z: "+scaleZ+" ]";
+        }		
+		
 		@Override
 		public Vector4 apply(Vector4 v) 
 		{
@@ -69,6 +75,12 @@ public abstract class AffineTransform
 		}		
 		
 		@Override
+		public String toString()
+		{
+		    return "Translation[ x: "+translateX+" , y: "+translateY+" , z: "+translateZ+" ]";
+		}
+		
+		@Override
 		public Vector4 applyInverse(Vector4 v) 
 		{
 			return new Vector4(v.x + translateX ,v.y + translateY , v.z + translateZ);
@@ -93,9 +105,18 @@ public abstract class AffineTransform
 		private final Matrix m;
 		private final Matrix mInverse;
 		
+		private final double rotX;
+		private final double rotY;
+		private final double rotZ;
+
 		public Rotation(double rotX, double rotY,double rotZ) 
 		{
 			super(false,true,false);
+			
+			this.rotX = rotX;
+			this.rotY = rotY;
+			this.rotZ = rotZ;
+			
 			Matrix tmp = Matrix.identity();
 			if ( rotX != 0 ) {
 				tmp = tmp.multiply( LinAlgUtils.rotX(rotX ) );
@@ -107,7 +128,17 @@ public abstract class AffineTransform
 				tmp = tmp.multiply( LinAlgUtils.rotZ(rotZ ) );
 			}			
 			m = tmp;
-			mInverse = LinAlgUtils.rotX( 360-rotX ).multiply( LinAlgUtils.rotY( 360-rotY ) ).multiply( LinAlgUtils.rotZ( 360-rotZ ) );
+			Matrix tmp2 = Matrix.identity();
+            if ( rotZ != 0 ) {
+                tmp2 = tmp2.multiply( LinAlgUtils.rotZ( - rotZ ) );
+            } 			
+            if ( rotY != 0 ) {
+                tmp2 = tmp2.multiply( LinAlgUtils.rotY( - rotY ) );
+            }            
+			if ( rotX != 0 ) {
+			    tmp2 = tmp2.multiply( LinAlgUtils.rotX( - rotX ) );
+			}
+			mInverse = tmp2;
 		}
 		
 		@Override
@@ -115,6 +146,12 @@ public abstract class AffineTransform
 		{
 			return v.multiply( m );
 		}
+		
+        @Override
+        public String toString()
+        {
+            return "Rotation[ x: "+rotX+" , y: "+rotY+" , z: "+rotZ+" ]";
+        }		
 		
 		@Override
 		public Vector4 applyInverse(Vector4 v) {

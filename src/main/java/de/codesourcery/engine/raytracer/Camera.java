@@ -15,15 +15,15 @@ public class Camera {
     public double zNear = 0.5;
     public double zFar = 100000;
     
-	private float rotAngleY = 0.0f; // rotation around Y axis, in degrees
-	private float rotAngleX = 0.0f; // rotation around X axis
+	public float rotAngleY = 0.0f; // rotation around Y axis, in degrees
+	public float rotAngleX = 0.0f; // rotation around X axis
 	
 	private float defaultRotY = 0.0f;
 	private float defaultRotX = 0.0f;
 	
     private Vector4 eyeTarget = defaultEyePosition.plus( viewOrientation );
     
-    private Matrix viewMatrix = Matrix.identity();
+    public Matrix viewMatrix = Matrix.identity();
     
     // axis in WORLD coordinates
     public Vector4 zAxis;
