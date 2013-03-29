@@ -28,6 +28,13 @@ public final class Raytracer
 
 	private static boolean ENABLE_RAY_DEBUGGING=true;
 
+	private final ThreadLocal<MersenneTwisterFast> rnd = new ThreadLocal<MersenneTwisterFast>()  {
+		protected MersenneTwisterFast initialValue() 
+		{
+			return new MersenneTwisterFast(System.currentTimeMillis());
+		}
+	};	
+
 	public Raytracer(Scene scene) 
 	{
 		this.scene = scene;
@@ -330,13 +337,6 @@ public final class Raytracer
 		}
 	}
 
-	private final ThreadLocal<MersenneTwisterFast> rnd = new ThreadLocal<MersenneTwisterFast>()  {
-		protected MersenneTwisterFast initialValue() 
-		{
-			return new MersenneTwisterFast(System.currentTimeMillis());
-		}
-	};
-
 	private Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection,BufferedImage image,double refr_indx )
 	{
 		final Vector4 normalAtIntersection = intersection.normalAtIntersection(scene.camera);
@@ -438,7 +438,8 @@ public final class Raytracer
 		if ( hit != null ) 
 		{
 			if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
-				System.out.println("Reflected ray "+ray+" (normal: "+normalAtIntersection+") hits "+hit.object);
+				System.out.println("Reflected ray "+ray+" (\nincoming: "+incomingRay+", \nnormal: "+normalAtIntersection+") hits "+hit.object+" at \n"+hit.nearestIntersectionPoint);
+				hit.object.normalVectorAt( hit.nearestIntersectionPoint , scene.camera );
 				renderRay( image , getViewPlane() , ray.point , ray.evaluateAt( hit.solutions[0] ) , RayType.REFLECTED );
 			}
 			Vector4 refColor = calculateColorAt( ray , hit , image , 1.0 );

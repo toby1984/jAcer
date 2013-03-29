@@ -215,6 +215,14 @@ public final class Vector4
     	return Math.sqrt( x*x + y*y + z*z );
     }
     
+    public double squaredDistanceTo(Vector4 point) 
+    {
+    	double x = this.x - point.x;
+    	double y = this.y - point.y;
+    	double z = this.z - point.z;
+    	return x*x + y*y + z*z;
+    }    
+    
     public Vector4 plus(Vector4 other) {
         return new Vector4( this.x + other.x , this.y + other.y , this.z + other.z , w );
     }     

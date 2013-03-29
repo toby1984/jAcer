@@ -1,71 +1,74 @@
 package de.codesourcery.engine.springmass;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-
 import de.codesourcery.engine.raytracer.Vector4;
 
-public final class Mass
-{
-    private static final Integer DUMMY = new Integer(0);
-    
-    public Vector4 position;
-    public Vector4 previousPosition;    
-    
-    public final Map<Mass,Integer> neighbors = new IdentityHashMap<Mass,Integer>();
-    
-    public double mass;
-    
-    public boolean isAnchor = false;
-    
-    private final Spring spring = new Spring();
-    
-    public Mass(Vector4 position, double mass)
-    {
-        this.position = position;
-        this.previousPosition = new Vector4(position);
-        this.mass = mass;
-    }
-    
-    @Override
-    public String toString()
-    {
-        return "Mass[ "+position+" ]";
-    }
-    
-    public List<Mass> getNeighbors() {
-        return new ArrayList<>( neighbors.keySet() );
-    }
-    
-    public void addNeighbor(Mass m) 
-    {
-        this.neighbors.put(m,DUMMY);
-    }
-    
-    public void setAnchor(boolean isAnchor)
-    {
-        this.isAnchor = isAnchor;
-    }
-    
-    public Vector4 calcForce() 
-    {
-        if ( isAnchor ) {
-            return new Vector4(0,0,0);
-        }
-        final Vector4 result = new Vector4(0,0,0);
-        for ( Mass n : neighbors.keySet() ) 
-        {
-            result.plusInPlace( spring.calcForce( this , n ) );
-        }
-        result.plusInPlace( new Vector4(0,-1,0).multiply(9.81 ) );
-        return result;
-    }
+public class Mass {
+	
+	public Vector4 position;
+	
+	public Vector4 movementSum;
+	public int springCount = 0;
+	
+	private byte flags;
+	
+	public static enum Flag 
+	{
+		FIXED(0),
+		SELECTED(1);
+		
+		private final byte mask;
+		
+		private Flag( int bit ) {
+			this.mask = (byte) ( 1 << bit );
+		}
+		
+		public boolean isSet(byte in) {
+			return ( in & mask ) != 0;
+		}
+		
+		public byte setOrClear(byte in, boolean set) {
+			if ( set ) {
+				return (byte) ( in | mask );
+			} 
+			return (byte) (in & ~mask );
+		}
+	}
+	
+	public double distanceTo(Mass other) {
+		return position.distanceTo( other.position );
+	}
+	
+	public Mass createCopy() 
+	{
+		final Mass result = new Mass(new Vector4( this.position ) );
+		result.flags = this.flags;
+		return result;
+	}
 
-    public void updatePosition(Vector4 newPosition)
-    {
-        this.previousPosition = position;
-        this.position = newPosition;
-    }
+	public void setFixed(boolean yesNo) {
+		flags = Flag.FIXED.setOrClear( flags  , yesNo );
+	}
+	
+	public boolean isFixed() {
+		return Flag.FIXED.isSet( flags );
+	}
+	
+	public void setSelected(boolean yesNo) {
+		flags = Flag.SELECTED.setOrClear( flags  , yesNo );
+	}	
+	
+	public boolean isSelected() {
+		return Flag.SELECTED.isSet( flags );
+	}	
+	
+	public Mass(Vector4 position) {
+		if (position == null) {
+			throw new IllegalArgumentException("position must not be null");
+		}
+		this.position = position;
+	}
+
+	public double squaredDistanceTo(Vector4 other) {
+		return position.distanceTo( other );
+	}
 }
