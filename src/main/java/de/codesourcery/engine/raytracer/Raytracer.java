@@ -26,7 +26,7 @@ public final class Raytracer
 
 	private volatile int samplesPerPixel = 1;
 
-	private static boolean ENABLE_RAY_DEBUGGING=false;
+	private static boolean ENABLE_RAY_DEBUGGING=true;
 
 	public Raytracer(Scene scene) 
 	{

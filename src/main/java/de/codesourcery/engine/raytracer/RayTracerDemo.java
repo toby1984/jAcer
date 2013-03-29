@@ -28,6 +28,10 @@ public class RayTracerDemo {
 
 	private static final Vector4 DEFAULT_EYE_POSITION = new Vector4( -50.0,-250.0,1900.0 );
 
+	public static final float ANGLE_INCREMENT = 2;
+	
+	public static final float COORD_INCREMENT = 50;
+	
 	public static void main(String[] args) throws Exception {
 
 		final Vector4 eyePosition = new Vector4(DEFAULT_EYE_POSITION);
@@ -126,8 +130,6 @@ public class RayTracerDemo {
 
 		private double bestRaysPerSecond = 0;
 		
-		private static final float increment = 50;
-
 		private final KeyAdapter keyAdapter =  new KeyAdapter() 
 		{
 			@Override
@@ -158,34 +160,34 @@ public class RayTracerDemo {
 						}                               
 						break;
 					case KeyEvent.VK_PLUS:
-						camera.moveUp( increment );                             
+						camera.moveUp( COORD_INCREMENT );                             
 						break;
 					case KeyEvent.VK_MINUS:
-						camera.moveDown( increment );
+						camera.moveDown( COORD_INCREMENT );
 						break;
 					case KeyEvent.VK_W:
-						camera.moveForward(increment);                              
+						camera.moveForward(COORD_INCREMENT);                              
 						break;
 					case KeyEvent.VK_S:
-						camera.moveBackward(increment);
+						camera.moveBackward(COORD_INCREMENT);
 						break;
 					case KeyEvent.VK_A:
-						camera.strafeLeft(increment);
+						camera.strafeLeft(COORD_INCREMENT);
 						break;
 					case KeyEvent.VK_D:
-						camera.strafeRight(increment);                              
+						camera.strafeRight(COORD_INCREMENT);                              
 						break;
 					case KeyEvent.VK_Q:
-						camera.rotate(-1,0);
+						camera.rotate(-ANGLE_INCREMENT,0);
 						break;
 					case KeyEvent.VK_E:
-						camera.rotate(1,0);
+						camera.rotate(ANGLE_INCREMENT,0);
 						break;  
 					case KeyEvent.VK_Y:
-						camera.rotate(0,-1);
+						camera.rotate(0,-ANGLE_INCREMENT);
 						break;
 					case KeyEvent.VK_C:
-						camera.rotate(0,1);                                
+						camera.rotate(0,ANGLE_INCREMENT);                                
 						break;  
 					case KeyEvent.VK_HOME:
 						try 
