@@ -28,7 +28,7 @@ public class RayTracerDemo {
 
 	private static final Vector4 DEFAULT_EYE_POSITION = new Vector4( -50.0,-250.0,1900.0 );
 
-	public static final float ANGLE_INCREMENT = 2;
+	public static final float ANGLE_INCREMENT = 4;
 	
 	public static final float COORD_INCREMENT = 50;
 	
@@ -45,7 +45,7 @@ public class RayTracerDemo {
 		 **********/
 		 // scene.addObject( new PointLightsource( new Vector4( 0,500,500 ) , Color.RED) );
 		scene.addObject( new PointLightsource( new Vector4( -50, 800 , 600 ) , Color.WHITE ) );
-		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.WHITE ) ); 
+//		scene.addObject( new PointLightsource( new Vector4( -200,0,0 ) , Color.WHITE ) ); 
 
 		/**********
 		 * OBJECTS
@@ -78,18 +78,20 @@ public class RayTracerDemo {
 		//        cube2.material.refractionIndex = 1.51;
 		sphere1.material.refractionIndex = 1.31;
 		sphere1.material.isRefractive = true;
+		sphere2.material.diffuseColor = new Vector4(0,0.8,0);		
+		sphere2.material.specularColor = new Vector4(1.0,1.0,1.0);
 		sphere2.material.reflectivity(1.0);
 		//        cube.material.reflectivity(1.0);
-		cube2.material.reflectivity(1);
+		cube2.material.reflectivity(0.1);
 
 		scene.addObject(cube2);
 		scene.addObject( cube );          
 		scene.addObject( sphere1 ); 
 		scene.addObject( sphere2 ); 
-		scene.addObject( sphere3 );	
+//		scene.addObject( sphere3 );	
 		scene.addObject( horizontalPlane ); // horizontal
-		//        scene.addObject( leftPlane ); // left
-		//        scene.addObject( verticalPlane ); // vertical
+		        scene.addObject( leftPlane ); // left
+		        scene.addObject( verticalPlane ); // vertical
 
 		final Raytracer tracer = new Raytracer( scene );
 
@@ -226,9 +228,6 @@ public class RayTracerDemo {
 					{
 						// map view coordinates to points on view plane
 						final Vector4 pointOnViewPlane = tracer.screenToPointOnViewPlane( getWidth() , getHeight() , e.getPoint().x , e.getPoint().y );
-						System.out.println("Viewplane width: "+tracer.scene.camera.frustum.getNearPlaneHeight());
-						System.out.println("Viewplane height: "+tracer.scene.camera.frustum.getNearPlaneHeight());
-						System.out.println("Point on view plane: "+pointOnViewPlane);
 						final Plane viewPlane = tracer.getViewPlane();
 						synchronized( IMAGE_LOCK ) 
 						{

@@ -263,8 +263,6 @@ public final class Raytracer
 
 	public Point modelToScreen(Vector4 pointInWorldCoordinates,Plane viewPlane,int imageWidth,int imageHeight) 
 	{
-		System.out.println("Mapping "+pointInWorldCoordinates);
-
 		// cast ray from point to camera
 		final Vector4 direction = scene.camera.eyePosition.minus(pointInWorldCoordinates).normalize();
 		final Ray r = new Ray( pointInWorldCoordinates , direction );
@@ -272,7 +270,6 @@ public final class Raytracer
 		// calculate intersection with view plane
 		final IntersectionInfo i1= viewPlane.intersect( r );
 		final Vector4 nearestIntersectionPoint = r.evaluateAt( i1.solutions[0] );
-		System.out.println("Intersection with view plane "+nearestIntersectionPoint);
 
 		// map point on view plane to screen coordinates
 
@@ -282,7 +279,6 @@ public final class Raytracer
 		Matrix invMatrix = LinAlgUtils.rotY( 360 - scene.camera.rotAngleY ).multiply( LinAlgUtils.rotX( scene.camera.rotAngleX ) );
 
 		Vector4 pointOnViewPlane = nearestIntersectionPoint.minus(scene.camera.eyePosition ).multiply( invMatrix );
-		System.out.println("Transformed point on view plane "+pointOnViewPlane);
 
 		double nw = scene.camera.frustum.getNearPlaneWidth();
 		double nh = scene.camera.frustum.getNearPlaneHeight();
@@ -296,9 +292,7 @@ public final class Raytracer
 		final double x = centerX - pointOnViewPlane.x*scaleX;
 		final double y = centerY - pointOnViewPlane.y*scaleY;
 
-		final Point result = new Point((int) Math.round(x),(int) Math.round(y));
-		System.out.println("Mapped "+pointInWorldCoordinates+" -> ("+x+" , "+y+")");
-		return result;
+		return new Point((int) Math.round(x),(int) Math.round(y));
 	}
 
 	protected static final class Slice {
@@ -366,7 +360,7 @@ public final class Raytracer
 		{
 			double refraction_index = material.refractionIndex;
 		    double n = refr_indx/refraction_index;
-			Vector4 N1 = normalAtIntersection.multiply( incomingRay.fromInsideObject ? 1 : -1 ); // N.multiply(value)*HitOrMiss;
+			Vector4 N1 = normalAtIntersection.multiply( incomingRay.fromInsideObject ? -1 : 1 ); // N.multiply(value)*HitOrMiss;
 			double CosThetaI = N1.flip().dotProduct( incomingRay.direction);
 			double SinThetaI = Math.sqrt(1.0 - CosThetaI*CosThetaI);
 			double SinThetaT = n*SinThetaI;
@@ -381,6 +375,9 @@ public final class Raytracer
 				Vector4 R5 = intersectionPoint.plus(  R4.multiply(0.001) );
 				Ray R6 = new Ray( R5,R4, incomingRay.bounceCount+1 );
 				R6.fromInsideObject = ! incomingRay.fromInsideObject;
+				if ( ENABLE_RAY_DEBUGGING ) {
+					R6.debug = incomingRay.debug;
+				}
 				
 				IntersectionInfo info = scene.findNearestIntersection( R6 , 0.01 );
 				final Vector4 refr_color;
@@ -434,13 +431,14 @@ public final class Raytracer
 		final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
 		// hint: reflect() already returns a normalized vector so need to normalize it here
 		final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
-		if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
-			ray.debug = true;
+		if ( ENABLE_RAY_DEBUGGING ) {
+			ray.debug = incomingRay.debug;
 		}
 		final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
 		if ( hit != null ) 
 		{
 			if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
+				System.out.println("Reflected ray "+ray+" (normal: "+normalAtIntersection+") hits "+hit.object);
 				renderRay( image , getViewPlane() , ray.point , ray.evaluateAt( hit.solutions[0] ) , RayType.REFLECTED );
 			}
 			Vector4 refColor = calculateColorAt( ray , hit , image , 1.0 );

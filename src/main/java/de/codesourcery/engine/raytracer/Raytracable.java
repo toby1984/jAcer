@@ -26,6 +26,14 @@ public abstract class Raytracable {
 	
 	public static final Vector4 reflect(Vector4 incoming, Vector4 normalVectorAtReflectionPoint) {
 		
+		/*
+Rr = Ri - 2 N (Ri . N)
+
+Some obvious things to note at extreme cases. 
+* If Ri is parallel to the normal then Rr = N, that is, the reflected ray is in the opposite direction to the incident ray. 
+* If the incident ray is perpendicular to the normal then it is unaffected, Rr = Ri, this is a glancing ray. 		 
+		 */
+		
 		/* n: normal vector at point P
 		 * d: incoming ray
 		 * 
@@ -33,6 +41,8 @@ public abstract class Raytracable {
          *
          * where d⋅n is the dot product, and n must be normalized.
 		 */
+//		return incoming.minus( normalVectorAtReflectionPoint.multiply( incoming.dotProduct( normalVectorAtReflectionPoint ) ).multiply( 2 ) );
+		
 		final double factor = 2 * incoming.dotProduct( normalVectorAtReflectionPoint );
 		double dx = incoming.x - normalVectorAtReflectionPoint.x * factor;
         double dy = incoming.y - normalVectorAtReflectionPoint.y * factor;

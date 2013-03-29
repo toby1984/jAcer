@@ -109,7 +109,6 @@ public class AxisAlignedCube extends Raytracable
         } else {
             throw new RuntimeException("Internal error, point "+p+" is not on "+this);
         }
-        
         return transform.getFirstRotation().applyInverse( result );
     }
 }
