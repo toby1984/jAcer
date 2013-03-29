@@ -76,7 +76,8 @@ public class RayTracerDemo {
 		cube.material.diffuseColor = new Vector4(0.8,0.8,0.3);    
 
 		//        cube2.material.refractionIndex = 1.51;
-		sphere1.material.refractionIndex = 1.51;
+		sphere1.material.refractionIndex = 1.31;
+		sphere1.material.isRefractive = true;
 		sphere2.material.reflectivity(1.0);
 		//        cube.material.reflectivity(1.0);
 		cube2.material.reflectivity(1);
@@ -323,7 +324,7 @@ public class RayTracerDemo {
 					finally 
 					{
 						final DecimalFormat DF = new DecimalFormat("###,###,###,##0");
-						System.out.println( time+" millis | "+DF.format(raysPerSecond)+" rays/s , best: "+DF.format(bestRaysPerSecond)+" rays/s ]");
+						System.out.println( time+" millis | "+DF.format(raysPerSecond)+" primary rays/s , best: "+DF.format(bestRaysPerSecond)+" primary rays/s ]");
 						latch.countDown();		
 						synchronized( IMAGE_LOCK) 
 						{

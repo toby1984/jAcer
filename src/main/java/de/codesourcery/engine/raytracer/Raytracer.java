@@ -225,7 +225,7 @@ public final class Raytracer
 			if ( ENABLE_RAY_DEBUGGING && debug ) {
 				ray.debug = true;
 			}            
-			color.plusInPlace( calculateColorAt(ray,intersection,image) );
+			color.plusInPlace( calculateColorAt(ray,intersection,image , 1.0 ) );
 		}
 	}
 
@@ -336,184 +336,182 @@ public final class Raytracer
 		}
 	}
 
-	private final ThreadLocal<MersenneTwisterFast> rnd = new ThreadLocal<MersenneTwisterFast>() 
-			{
+	private final ThreadLocal<MersenneTwisterFast> rnd = new ThreadLocal<MersenneTwisterFast>()  {
 		protected MersenneTwisterFast initialValue() 
 		{
 			return new MersenneTwisterFast(System.currentTimeMillis());
-		};
-			};
+		}
+	};
 
-			private Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection,BufferedImage image)
+	private Vector4 calculateColorAt(final Ray incomingRay,final IntersectionInfo intersection,BufferedImage image,double refr_indx )
+	{
+		final Vector4 normalAtIntersection = intersection.normalAtIntersection(scene.camera);
+		final Vector4 intersectionPoint = intersection.nearestIntersectionPoint;
+
+		final Material material = intersection.object.material;
+
+		if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
+		{
+			renderRay(image, getViewPlane(), intersectionPoint, intersectionPoint.plus( normalAtIntersection.multiply( 100 ) ) , RayType.NORMAL);                    
+		} 
+
+		/*
+		 * REFRACTION
+		 */
+		Vector4 finalColor = new Vector4(scene.ambientColor);
+		Vector4 sumDiff=new Vector4();
+		Vector4 sumSpec=new Vector4();
+		
+		if ( material.isRefractive ) 
+		{
+			double refraction_index = material.refractionIndex;
+		    double n = refr_indx/refraction_index;
+			Vector4 N1 = normalAtIntersection.multiply( incomingRay.fromInsideObject ? 1 : -1 ); // N.multiply(value)*HitOrMiss;
+			double CosThetaI = N1.flip().dotProduct( incomingRay.direction);
+			double SinThetaI = Math.sqrt(1.0 - CosThetaI*CosThetaI);
+			double SinThetaT = n*SinThetaI;
+			if(SinThetaT*SinThetaT < 1.0)
 			{
-				final Vector4 normalAtIntersection = intersection.normalAtIntersection(scene.camera);
-				final Vector4 intersectionPoint = intersection.nearestIntersectionPoint;
-
-				final Material material = intersection.object.material;
-
-				if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
+				double CosThetaT = Math.sqrt(1.0 - SinThetaT*SinThetaT);
+				
+				Vector4 R4 = incomingRay.direction.multiply( n ).minus( N1.multiply( n*CosThetaI+CosThetaT) );
+				R4.normalizeInPlace();
+				
+				double dist1;
+				Vector4 R5 = intersectionPoint.plus(  R4.multiply(0.001) );
+				Ray R6 = new Ray( R5,R4, incomingRay.bounceCount+1 );
+				R6.fromInsideObject = ! incomingRay.fromInsideObject;
+				
+				IntersectionInfo info = scene.findNearestIntersection( R6 , 0.01 );
+				final Vector4 refr_color;
+				if ( info != null ) 
 				{
-					renderRay(image, getViewPlane(), intersectionPoint, intersectionPoint.plus( normalAtIntersection.multiply( 100 ) ) , RayType.NORMAL);                    
-				} 
+					dist1 = info.solutions[0];
+					refr_color = calculateColorAt( R6 , info , image , refraction_index );
+				} else {
+					dist1 = 0;
+					refr_color = new Vector4();					
+				}
+				
+				// Beer's Law
+				Vector4 initialCol = new Vector4();
+//				calculateReflectedColor(incomingRay, image, normalAtIntersection, intersectionPoint, material, initialCol);
+				
+				//      Color absorbance = object->GetMaterial()->GetColor()*0.15*dist1*(-1.0);
+				Vector4 absorbance = initialCol.multiply( 0.15*dist1*(-1.0) );
+				Vector4 transparency = new Vector4 ( Math.exp(absorbance.x), Math.exp(absorbance.y), Math.exp(absorbance.z) );
+				finalColor.plusInPlace( refr_color.straightMultiply( transparency ) );
+				return finalColor;
+			}			
+		} else {
+			/*
+			 * DIRECT LIGHTING
+			 */
+			calcDiffuseAndSpecular(incomingRay, intersection, intersectionPoint, normalAtIntersection, material, image, sumDiff, sumSpec);
+			finalColor.plusInPlace( sumDiff , sumSpec);
+		}
 
-				/*
-				 * REFRACTION
-				 */
-				 Vector4 finalColor = scene.ambientColor;        
-				 if ( material.refractionIndex != incomingRay.refractionIndex ) 
-				 {
-					 double n = incomingRay.refractionIndex / material.refractionIndex;           
-					 double CosThetaI = normalAtIntersection.flip().dotProduct( incomingRay.direction );
-					 double SinThetaI = Math.sqrt(1.0 - CosThetaI*CosThetaI);
-					 double SinThetaT = n*SinThetaI;
+		/*
+		 * REFLECTION
+		 */
+		if ( material.reflectivity() != 0.0d ) 
+		{
+			calculateReflectedColor(incomingRay, image, normalAtIntersection, intersectionPoint, material, finalColor); 
+		}
+		return finalColor.clamp(0,1);
+	}
 
-					 if ( SinThetaT*SinThetaT < 1.0d )
-					 {
-						 double CosThetaT = Math.sqrt(1.0 - SinThetaT*SinThetaT);
-
-						 final Vector4 R4 = incomingRay.direction.multiply( n ).minus( normalAtIntersection.multiply( n*CosThetaI+CosThetaT ) );
-						 R4.normalizeInPlace();
-
-						 final Vector4 refractOrigin = intersectionPoint.plus(  R4.multiply( 0.001 ) ); // move origin of ray a little bit INTO the object
-						 final Ray refractedRay = new Ray( refractOrigin, R4 , incomingRay.bounceCount+1 );
-
-						 IntersectionInfo outer = scene.findNearestIntersection( refractedRay , 0.001 );
-
-						 final Vector4 color;
-						 double dist1 = 0;
-						 if ( outer != null ) 
-						 {
-							 dist1 = outer.solutions[0];
-							 // cast another ray from this point with the original direction
-							 final Ray continuedRay = new Ray( refractedRay.evaluateAt( outer.solutions[0] ), incomingRay.direction , incomingRay.bounceCount+1 );
-							 outer = scene.findNearestIntersection( continuedRay , 0.001 );
-							 if ( outer != null ) {
-								 color = calculateColorAt( refractedRay , outer , image );
-							 } else {
-								 color = new Vector4();
-							 }
-						 } else {
-							 color = new Vector4(0,0,0);
-						 }
-
-						 // Beer's Law
-						 final Vector4 absorbance = material.diffuseColor.multiply( 0.15 * dist1 * -1);
-						 final Vector4 transparency = new Vector4( Math.exp(absorbance.x), Math.exp(absorbance.y), Math.exp(absorbance.z) );
-						 return finalColor.plus( color.multiplyAdd(  transparency ,  color ) );
-					 }
-				 }
-
-				 /*
-				  * DIRECT LIGHTING
-				  */
-				 Vector4 sumDiff=new Vector4(0,0,0);
-				 Vector4 sumSpec=new Vector4(0,0,0);
-
-				 for ( Lightsource light : scene.lightsources ) 
-				 {
-					 // cast ray from light source to point of intersection
-						 final Vector4 vectorToIntersection = intersectionPoint.minus( light.position );
-						 final Ray rayFromLight = new Ray( light.position , vectorToIntersection.normalize() );
-
-						 final double solutionAtIntersection = rayFromLight.solutionAt( intersectionPoint ) - 0.001;
-
-						 final IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0.001 );
-						 // TODO: Handle rays passing through transparent materials
-						 if (  occluder == null ||  occluder.solutions[0] > solutionAtIntersection ) // no occlusion or hit is behind intersection point
-						 {
-							 // calculate diffuse color
-							 final Vector4 vectorToLight = light.position.minus( intersectionPoint ).normalize();
-
-							 double dotProduct = normalAtIntersection.dotProduct( vectorToLight );
-							 if ( dotProduct > 0 ) 
-							 {
-								 if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
-								 {
-									 renderRay(image, getViewPlane(), intersectionPoint, light.position , RayType.RAY_TO_LIGHT);
-								 }                    
-								 sumDiff.x += (material.diffuseColor.x * light.diffuseColor.x)*dotProduct;
-								 sumDiff.y += (material.diffuseColor.y * light.diffuseColor.y)*dotProduct;
-								 sumDiff.z += (material.diffuseColor.z * light.diffuseColor.z)*dotProduct;
-
-								 // specular color
-								 if ( material.reflectivity() == 0 ) 
-								 {
-									 // hint: reflect() returns a normalized vector  
-									 Vector4 reflected = Raytracable.reflect( rayFromLight.direction , normalAtIntersection );
-									 double eyeReflectionAngle = Math.max( 0 , normalAtIntersection.dotProduct( reflected ) );
-									 double fspec = Math.pow( eyeReflectionAngle , material.shininess );
-
-									 sumSpec.x += (material.specularColor.x * light.specularColor.x)*fspec;
-									 sumSpec.y += (material.specularColor.y * light.specularColor.y)*fspec;
-									 sumSpec.z += (material.specularColor.z * light.specularColor.z)*fspec;
-								 }
-							 }
-					 }
-				 }
-
-				 if ( material.texture != null ) 
-				 {
-					 sumDiff = intersection.object.sampleTextureColorAtPoint( intersectionPoint ).straightMultiply( sumDiff );
-					 sumSpec = new Vector4(0,0,0);
-				 } else {
-					 sumDiff = sumDiff.multiply( 1 - material.reflectivity() );
-				 }
-
-				 finalColor = finalColor.plus( sumDiff , sumSpec);
-
-				 //        if ( material.reflectivity() < 1 && incomingRay.bounceCount < 4 ) 
-				 //        {
-				 //            Vector4 global=new Vector4(0,0,0);
-				 //            int hitCount = 0;
-				 //        	for ( int i = 0 ;i < 8 ; i++ ) 
-				 //        	{
-				 //        		double rx = -1 + rnd.get().nextDouble()*2.0;
-				 //        		double ry = -1 + rnd.get().nextDouble()*2.0;
-				 //        		double rz = -1 + rnd.get().nextDouble()*2.0;
-				 //        		final Vector4 newDir = new Vector4(rx,ry,rz).normalize();
-				 //        		Ray secondaryRay = new Ray( intersectionPoint , newDir , incomingRay.bounceCount+1 );
-				 //        		IntersectionInfo hit = scene.findNearestIntersection( secondaryRay , 0.01 );
-				 //        		if ( hit != null && hit.object != intersection.object ) 
-				 //        		{
-				 //        		    hitCount++;
-				 //        		    global.plusInPlace( calculateColorAt( secondaryRay , hit , image  ) );
-				 //        		}
-				 //        	}
-				 //        	if ( hitCount > 0 ) {
-				 //        	    finalColor.plusInPlace( global.multiply( 1/hitCount).multiply( 1 / (1+incomingRay.bounceCount ) ) );
-				 //        	}
-				 //        }
-
-				 /*
-				  * REFLECTION
-				  */
-				 if ( material.reflectivity() != 0.0d && incomingRay.bounceCount < 6 ) 
-				 {
-					 // calculate reflected ray
-					 final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
-					 // hint: reflect() already returns a normalized vector so need to normalize it here
-					 final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
-					 if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
-						 ray.debug = true;
-					 }
-					 final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
-					 if ( hit != null ) 
-					 {
-						 if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
-							 renderRay( image , getViewPlane() , ray.point , ray.evaluateAt( hit.solutions[0] ) , RayType.REFLECTED );
-						 }
-						 Vector4 refColor = calculateColorAt( ray , hit , image );
-						 finalColor = finalColor.multiplyAdd( 1 - material.reflectivity() , refColor );
-					 } 
-				 }
-				 return finalColor.clamp(0,1);
+	private void calculateReflectedColor(final Ray incomingRay, BufferedImage image,
+			final Vector4 normalAtIntersection,
+			final Vector4 intersectionPoint, final Material material,
+			Vector4 finalColor) 
+	{
+		if ( incomingRay.bounceCount > 6 ) {
+			return;
+		}
+		
+		// calculate reflected ray
+		final Vector4 reflected = Raytracable.reflect( incomingRay.direction , normalAtIntersection );
+		// hint: reflect() already returns a normalized vector so need to normalize it here
+		final Ray ray = new Ray( intersectionPoint , reflected , incomingRay.bounceCount+1 );
+		if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
+			ray.debug = true;
+		}
+		final IntersectionInfo hit = scene.findNearestIntersection( ray , 0.1 );
+		if ( hit != null ) 
+		{
+			if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) {
+				renderRay( image , getViewPlane() , ray.point , ray.evaluateAt( hit.solutions[0] ) , RayType.REFLECTED );
 			}
+			Vector4 refColor = calculateColorAt( ray , hit , image , 1.0 );
+			finalColor.multiplyAddInPlace( 1 - material.reflectivity() , refColor ) ;
+		}
+	}
+	
+	private void calcDiffuseAndSpecular(Ray incomingRay,IntersectionInfo intersection,
+			Vector4 intersectionPoint, 
+			Vector4 normalAtIntersection,
+			Material material,
+			BufferedImage image,
+			Vector4 sumDiff,
+			Vector4 sumSpec) 
+	{
+		for ( Lightsource light : scene.lightsources ) 
+		{
+			// cast ray from light source to point of intersection
+			final Vector4 vectorToIntersection = intersectionPoint.minus( light.position );
+			final Ray rayFromLight = new Ray( light.position , vectorToIntersection.normalize() );
 
-			public void setSamplesPerPixel(int samplesPerPixel) {
-				this.samplesPerPixel = samplesPerPixel;
-			}
+			final double solutionAtIntersection = rayFromLight.solutionAt( intersectionPoint ) - 0.001;
 
-			public int getSamplesPerPixel() {
-				return samplesPerPixel;
+			final IntersectionInfo occluder = scene.hasAnyIntersection( rayFromLight , 0.001 );
+			// TODO: Handle rays passing through transparent materials
+			if (  occluder == null ||  occluder.solutions[0] > solutionAtIntersection ) // no occlusion or hit is behind intersection point
+			{
+				// calculate diffuse color
+				final Vector4 vectorToLight = light.position.minus( intersectionPoint ).normalize();
+
+				double dotProduct = normalAtIntersection.dotProduct( vectorToLight );
+				if ( dotProduct > 0 ) 
+				{
+					if ( ENABLE_RAY_DEBUGGING && incomingRay.debug ) 
+					{
+						renderRay(image, getViewPlane(), intersectionPoint, light.position , RayType.RAY_TO_LIGHT);
+					}                    
+					sumDiff.x += (material.diffuseColor.x * light.diffuseColor.x)*dotProduct;
+					sumDiff.y += (material.diffuseColor.y * light.diffuseColor.y)*dotProduct;
+					sumDiff.z += (material.diffuseColor.z * light.diffuseColor.z)*dotProduct;
+
+					// specular color
+					if ( material.reflectivity() == 0 ) 
+					{
+						// hint: reflect() returns a normalized vector  
+						Vector4 reflected = Raytracable.reflect( rayFromLight.direction , normalAtIntersection );
+						double eyeReflectionAngle = Math.max( 0 , normalAtIntersection.dotProduct( reflected ) );
+						double fspec = Math.pow( eyeReflectionAngle , material.shininess );
+
+						sumSpec.x += (material.specularColor.x * light.specularColor.x)*fspec;
+						sumSpec.y += (material.specularColor.y * light.specularColor.y)*fspec;
+						sumSpec.z += (material.specularColor.z * light.specularColor.z)*fspec;
+					}
+				}
 			}
+		}
+
+		if ( material.texture != null ) 
+		{
+			sumDiff.copyFrom( intersection.object.sampleTextureColorAtPoint( intersectionPoint ).straightMultiply( sumDiff ) );
+			sumSpec.setToZero();
+		} else {
+			sumDiff.copyFrom( sumDiff.multiply( 1 - material.reflectivity() ) );
+		}		
+	}
+
+	public void setSamplesPerPixel(int samplesPerPixel) {
+		this.samplesPerPixel = samplesPerPixel;
+	}
+
+	public int getSamplesPerPixel() {
+		return samplesPerPixel;
+	}
 }

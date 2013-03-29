@@ -76,9 +76,36 @@
          <arguments>
            <argument>${basedir}/samples/specsample.dasm16</argument>
          </arguments>
+            -XX:+AggressiveOpts -XX:+UseFastAccessorMethods
 -->
       </configuration>
     </plugin>
+
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2-beta-2</version>
+            <configuration>
+                <appendAssemblyId>false</appendAssemblyId>
+                <finalName>jacer</finalName>
+                <archive>
+                    <manifest>
+                        <mainClass>de.codesourcery.engine.raytracer.RayTracerDemo</mainClass>
+                    </manifest>
+                </archive>
+               <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-my-jar-with-dependencies</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+        </plugin>
 
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>

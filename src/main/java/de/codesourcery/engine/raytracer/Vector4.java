@@ -89,6 +89,12 @@ public final class Vector4
         this.w = other.w;
     }    
     
+    public void set(double x,double y,double z) {
+    	this.x = x;
+    	this.y = y;
+    	this.z = z;
+    }
+    
     public void copyInto(double[] array,int startingOffset) 
     {
         array[startingOffset] = x;
@@ -235,6 +241,10 @@ public final class Vector4
         this(x,y,z,1);
     }
     
+    public void setToZero() {
+    	this.x = this.y = this.z = 0;
+    }
+    
     public Vector4(double x,double y,double z,double w) 
     {
         this.x = x;
@@ -276,7 +286,7 @@ public final class Vector4
     
     public Vector4 multiply( Matrix matrix) 
     {
-        final double[] matrixData = matrix.getData();
+        final double[] matrixData = matrix.data;
 
         double nx = x * matrixData[0] + y * matrixData[1]+
                     z * matrixData[2]+ w * matrixData[3];
@@ -302,6 +312,13 @@ public final class Vector4
     {
         return new Vector4( x * toMultiply + toAdd.x , y * toMultiply + toAdd.y , z * toMultiply + toAdd.z , w );
     }   
+    
+    public void multiplyAddInPlace(double toMultiply ,Vector4 toAdd) 
+    {
+    	this.x =  x * toMultiply + toAdd.x;
+    	this.y =  y * toMultiply + toAdd.y;
+    	this.z =  z * toMultiply + toAdd.z;
+    }       
     
     public Vector4 multiplyAdd(Vector4 toMultiply ,Vector4 toAdd) 
     {

@@ -16,29 +16,17 @@ public final class Matrix
      * 3 7 11 15
      * 
      */
-    private final double[] data;
-
-    public Matrix(Matrix other) 
-    {
-        this.data = new double[16];
-        for ( int i = 0 ; i < 16 ;i++) {
-            this.data[i] = other.data[i];
-        }
-    }
+    protected final double[] data=new double[16];
 
     /**
      * Creates an empty 4x4 matrix.
      */
     public Matrix() {
-        this.data = new double[SIZE*SIZE];
     }
 
     public Matrix(double[] data) 
     {
-        if ( data.length != SIZE*SIZE ) {
-            throw new IllegalArgumentException("Invalid array length: "+data.length);
-        }
-        this.data = data;
+    	System.arraycopy(data, 0, this.data,0,16);
     }
 
     public Vector4 getColumn(int col) 
@@ -63,7 +51,6 @@ public final class Matrix
      */
     public Matrix(Vector4 v1,Vector4 v2,Vector4 v3,Vector4 v4) 
     {
-        this.data = new double[ SIZE*SIZE ];
         v1.copyInto( this.data , 0 );
         v2.copyInto( this.data , 4 );
         v3.copyInto( this.data , 8 );
@@ -491,23 +478,4 @@ public final class Matrix
         return this.data;
     }
 
-	public void setColumns(Vector4 col0, Vector4 col1, Vector4 col2, Vector4 col3) 
-	{
-		this.data[ 0 ] = col0.x;
-        this.data[ 1 ] = col0.y;
-        this.data[ 2 ] = col0.z;
-        this.data[ 3 ] = col0.w;
-		this.data[ 4 ] = col1.x;
-		this.data[ 5 ] = col1.y;
-		this.data[ 6 ] = col1.z;
-		this.data[ 7 ] = col1.w;
-        this.data[ 8 ] = col2.x;
-        this.data[ 9 ] = col2.y;
-        this.data[ 10 ] = col2.z;
-        this.data[ 11 ] = col2.w;
-        this.data[ 12 ] = col3.x;
-        this.data[ 13 ] = col3.y;
-        this.data[ 14 ] = col3.z;
-        this.data[ 15 ] = col3.w;        
-	}
 }
