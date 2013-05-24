@@ -9,15 +9,15 @@ public class Ray
 	public boolean debug = false;
 	public boolean fromInsideObject;
 	
-	public Ray(Vector4 u, Vector4 v) 
+	public Ray(Vector4 origin, Vector4 direction) 
 	{
-	    this(u,v,0);
+	    this(origin,direction,0);
 	}
 	
-	public Ray(Vector4 u, Vector4 v,int bounceCount) 
+	public Ray(Vector4 origin, Vector4 direction,int bounceCount) 
 	{
-		this.point = u;
-		this.direction = v;
+		this.point = origin;
+		this.direction = direction;
 		this.bounceCount = bounceCount;
 	}	
 	

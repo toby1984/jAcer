@@ -1,27 +1,27 @@
 package de.codesourcery.engine.springmass;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import de.codesourcery.engine.raytracer.Plane;
 import de.codesourcery.engine.raytracer.Vector4;
 
 public class SpringMassSystem {
 
 	public List<Mass> masses = new ArrayList<>();
-	public List<Spring> springs = new ArrayList<>();
+
+	public static final double MAX_SPEED = 20;
 	
 	public void addMass(Mass m) 
 	{
 		this.masses.add( m );
 	}
 	
-	public void addSpring(Spring s) 
-	{
-		springs.add( s );
-	}
-	
-	public Mass getNearest(Vector4 pos,double maxDistanceSquared) {
+	public Mass getNearestMass(Vector4 pos,double maxDistanceSquared) {
 		
 		Mass best = null;
 		double closestDistance = Double.MAX_VALUE; 
@@ -36,57 +36,92 @@ public class SpringMassSystem {
 		}
 		return closestDistance > maxDistanceSquared ? null : best;
 	}
-
+	
+	public Set<Spring> getIntersectingSprings(double xCoordinate,Vector4 point,double maxDistance) 
+	{
+		final Set<Spring> result = new HashSet<>();
+		for ( Mass m : masses ) 
+		{
+			for ( Spring s : m.springs ) 
+			{
+				if ( ( s.m1.currentPosition.x <= xCoordinate && s.m2.currentPosition.x >= xCoordinate ) ||
+					   s.m2.currentPosition.x <= xCoordinate && s.m1.currentPosition.x >= xCoordinate ) 
+				{  						
+					if ( s.distanceTo( point) <= maxDistance) {
+						result.add( s );
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	public Set<Spring> getSprings() {
+		
+		final Set<Spring> result = new HashSet<Spring>();
+		for ( Mass m : masses ) {
+			result.addAll( m.springs );
+		}
+		return result;
+	}
+	
+	public synchronized void removeSpring(Spring s) 
+	{
+		s.m1.springs.remove( s );
+		s.m2.springs.remove( s );
+	}
+	
+	public void addSpring(Spring s) {
+		s.m1.addSpring( s );
+	}
+ 
 	public synchronized void step() 
 	{
-		final IdentityHashMap<Mass,Mass> newMasses = new IdentityHashMap<>();
-		for ( Mass m : masses ) {
-			Mass copy = m.createCopy();
-			copy.movementSum = new Vector4(0,0,0);
-			copy.springCount = 0;			
-			newMasses.put( m , copy );
-		}
+		final IdentityHashMap<Mass, Vector4> newForces=new IdentityHashMap<>();
 		
-		final double EPSILON = 1;
-		
-		final List<Spring> newSprings = new ArrayList<>();
-		for ( Spring s : springs ) 
+		final double deltaT = 6;
+		final double deltaTSquared = deltaT*deltaT;
+		for ( Mass m : masses ) 
 		{
-			final Mass m1 = newMasses.get( s.m1 );
-			final Mass m2 = newMasses.get( s.m2 );
-			
-			newSprings.add( new Spring( m1 , m2 , s.restLen ) );
-			
-			double delta = s.m1.distanceTo( s.m2 ) - s.restLen;
-			if ( delta > EPSILON ) {
-				// contract
-				Vector4 direction = s.m2.position.minus( s.m1.position ).normalize();
-				m1.movementSum.plusInPlace( direction.multiply( delta / 2.0 ) );
-				m2.movementSum.plusInPlace( direction.multiply( -delta / 2.0 ) );
-				
-				m1.springCount++;
-				m2.springCount++;
-			} 
-			else if ( delta < -EPSILON )
+			if ( ! m.isFixed() && ! m.isSelected() ) 
 			{
-				// expand
-				Vector4 direction = s.m2.position.minus( s.m1.position ).normalize();
-				m1.movementSum.plusInPlace( direction.multiply( -delta / 2.0 ) );
-				m2.movementSum.plusInPlace( direction.multiply( delta / 2.0 ) );		
-				
-				m1.springCount++;
-				m2.springCount++;				
+				final Vector4 internalForces = m.calculateNeighbourForces();
+				newForces.put( m , internalForces );
 			}
 		}
 		
-		this.springs = newSprings;
-		this.masses = new ArrayList<>( newMasses.values() );
-		for ( Mass m : this.masses ) 
+		// 
+		
+		/* Apply forces.
+		 * 
+		 * F = total of forces acting on this point
+		 * T = Time step to update over
+		 * X0 is the previous position, X1 is the current position
+		 * XT = X1
+		 * X1 += (X1-X0) + F/M*T*T
+		 * X0 = XT		 
+		 */
+		Vector4 gravity = new Vector4(0,1,0).multiply(9.81);
+		for ( Entry<Mass, Vector4> entry : newForces.entrySet() ) 
 		{
-			if ( m.springCount > 1 ) {
-				m.movementSum.multiplyInPlace( 1.0 / (double) m.springCount );
-			}
-			m.position.plusInPlace( m.movementSum );
+		   final Mass mass = entry.getKey();
+		   
+		   final Vector4 sumForces = entry.getValue();
+		   // apply gravity
+		   sumForces.plusInPlace( gravity );
+		   
+		   final Vector4 tmp = new Vector4(mass.currentPosition);
+		   
+		   final Vector4 posDelta = mass.currentPosition.minus(mass.previousPosition);
+		   
+		   sumForces.multiplyInPlace( 1.0 / (mass.mass*deltaTSquared) );
+		   posDelta.plusInPlace( sumForces );
+		   
+		   posDelta.clampMagnitudeInPlace( MAX_SPEED );
+		   mass.currentPosition.plusInPlace( posDelta );
+		   mass.previousPosition = tmp;
 		}
+		
 	}
+	
 }

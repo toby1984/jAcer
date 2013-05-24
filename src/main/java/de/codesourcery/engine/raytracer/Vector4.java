@@ -1,5 +1,6 @@
 package de.codesourcery.engine.raytracer;
 
+import java.awt.Color;
 import java.text.DecimalFormat;
 
 public final class Vector4 
@@ -57,11 +58,17 @@ public final class Vector4
     	return false;
     }    
     
-    public int toRGB() {
-        int color = ((int) ( r() *255f) ) << 16;
-        color |= ((int) ( g() *255f) ) << 8;
-        color |= ((int) ( b() *255f) );
+    public int toRGB() 
+    {
+    	int r = (int) Math.max( 0 , Math.min(r()*255f,255) );
+    	int g = (int) Math.max( 0 , Math.min(g()*255f,255) );
+    	int b = (int) Math.max( 0 , Math.min(b()*255f,255) );
+        int color = r << 16 | g << 8 | b;
         return color;
+    }
+    
+    public Color toColor() {
+    	return new Color( toRGB() );
     }
     
     public Vector4() {
@@ -449,5 +456,18 @@ public final class Vector4
 			newZ = max;
 		}		
 		return new Vector4(newX,newY,newZ);
+	}
+	
+	public void clampMagnitudeInPlace(double magnitude) 
+	{
+		final double len = length();
+		if ( len <= magnitude ) {
+			return;
+		}
+		
+		final double factor = magnitude / len;
+		this.x *= factor;
+		this.y *= factor;
+		this.z *= factor;
 	}
 }
