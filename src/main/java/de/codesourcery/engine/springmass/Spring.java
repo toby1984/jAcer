@@ -14,7 +14,7 @@ public class Spring {
 	public final Mass m1;
 	public final Mass m2;
 	
-	public final double coefficient=0.2;
+	public final double coefficient=0.1;
 	
 	public final double restLen;
 	

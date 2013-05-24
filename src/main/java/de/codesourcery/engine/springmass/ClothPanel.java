@@ -32,15 +32,15 @@ public class ClothPanel extends JFrame {
 	
 	private static final double MOUSE_DRAG_ZDEPTH = -100;	
 	
-	public static final double VERTICAL_RESTLENGTH_FACTOR = 0.5;
+	public static final double VERTICAL_RESTLENGTH_FACTOR = 1;
 	public static final double HORIZONTAL_RESTLENGTH_FACTOR = 1;
 	
 	public static final boolean LIGHING = true;
 	public static final Vector4 LIGHT_POS = new Vector4( X_RESOLUTION/3.5 , Y_RESOLUTION/2.5 , -200 );
 	public static final Vector4 LIGHT_COLOR = new Vector4(.2,.2,0.8);
 
-	public static final int COLUMNS = 333;	
-	public static final int ROWS = 21;
+	public static final int COLUMNS = 633;	
+	public static final int ROWS = 33;
 
 	private final SimulationThread simulationThread;
 	private final RenderPanel renderPanel;
@@ -200,7 +200,7 @@ public class ClothPanel extends JFrame {
 					time += System.currentTimeMillis();
 					stepCounter++;
 					if ( ( stepCounter % 100 ) == 0 ) {
-						System.out.println("time: "+time+" ms");
+						System.out.println("Calculation time: "+time+" ms");
 					}
 				}
 

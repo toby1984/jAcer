@@ -6,12 +6,16 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
-import de.codesourcery.engine.raytracer.Plane;
 import de.codesourcery.engine.raytracer.Vector4;
 
 public class SpringMassSystem {
 
+	public static final int FORK_THRESHOLD = 100;
+	private static final ForkJoinPool pool = new ForkJoinPool();	
+	
 	public List<Mass> masses = new ArrayList<>();
 
 	public static final double MAX_SPEED = 20;
@@ -74,13 +78,54 @@ public class SpringMassSystem {
 	public void addSpring(Spring s) {
 		s.m1.addSpring( s );
 	}
- 
+	
 	public synchronized void step() 
+	{
+
+		MyTask task = new MyTask( masses );
+		pool.submit( task );
+		
+		final List<TaskResult> results = task.join();
+		
+		// 
+		
+		/* Apply forces.
+		 * 
+		 * F = total of forces acting on this point
+		 * T = Time step to update over
+		 * X0 is the previous position, X1 is the current position
+		 * XT = X1
+		 * X1 += (X1-X0) + F/M*T*T
+		 * X0 = XT		 
+		 */
+		final double deltaT = 6;
+		final double deltaTSquared = deltaT*deltaT;		
+		Vector4 gravity = new Vector4(0,1,0).multiply(9.81);
+		for ( TaskResult entry : results )
+		{
+		   final Mass mass = entry.m;
+		   
+		   final Vector4 sumForces = entry.sumForces;
+		   // apply gravity
+		   sumForces.plusInPlace( gravity );
+		   
+		   final Vector4 tmp = new Vector4(mass.currentPosition);
+		   
+		   final Vector4 posDelta = mass.currentPosition.minus(mass.previousPosition);
+		   
+		   sumForces.multiplyInPlace( 1.0 / (mass.mass*deltaTSquared) );
+		   posDelta.plusInPlace( sumForces );
+		   
+		   posDelta.clampMagnitudeInPlace( MAX_SPEED );
+		   mass.currentPosition.plusInPlace( posDelta );
+		   mass.previousPosition = tmp;
+		}
+	}
+	
+	private void stepSingleThreaded() 
 	{
 		final IdentityHashMap<Mass, Vector4> newForces=new IdentityHashMap<>();
 		
-		final double deltaT = 6;
-		final double deltaTSquared = deltaT*deltaT;
 		for ( Mass m : masses ) 
 		{
 			if ( ! m.isFixed() && ! m.isSelected() ) 
@@ -101,6 +146,9 @@ public class SpringMassSystem {
 		 * X1 += (X1-X0) + F/M*T*T
 		 * X0 = XT		 
 		 */
+		final double deltaT = 6;
+		final double deltaTSquared = deltaT*deltaT;
+		
 		Vector4 gravity = new Vector4(0,1,0).multiply(9.81);
 		for ( Entry<Mass, Vector4> entry : newForces.entrySet() ) 
 		{
@@ -121,7 +169,74 @@ public class SpringMassSystem {
 		   mass.currentPosition.plusInPlace( posDelta );
 		   mass.previousPosition = tmp;
 		}
+	}
+	
+	protected static final class TaskResult 
+	{
+		public final Mass m;
+		public final Vector4 sumForces;
+		protected TaskResult(Mass m, Vector4 sumForces) {
+			this.m = m;
+			this.sumForces = sumForces;
+		}
 		
+	}
+	
+	protected static final class MyTask extends ForkJoinTask<List<TaskResult>> {
+
+		private List<TaskResult> result= new ArrayList<>();
+		private final List<Mass> masses;
+		
+		public MyTask(List<Mass> masses) {
+			this.masses = masses;
+		}
+		
+		@Override
+		public List<TaskResult> getRawResult() {
+			return result;
+		}
+
+		@Override
+		protected void setRawResult(List<TaskResult> value) {
+		}
+		
+	    protected final boolean exec() {
+	        compute();
+	        return true;
+	    }
+	    
+	    /**
+	     * The main computation performed by this task.
+	     */
+	    protected void compute() 
+	    {
+	    	final int len = masses.size();
+	        if (len < FORK_THRESHOLD ) 
+	        {
+	            computeDirectly();
+	            return;
+	        }
+	        
+	        final int split = len / 2;
+	        
+	        MyTask task1 = new MyTask( masses.subList( 0 , split ) );
+	        MyTask task2 = new MyTask( masses.subList( split , masses.size() ) ) ;
+            invokeAll( task1,task2);
+            result.addAll( task1.getRawResult() );
+            result.addAll( task2.getRawResult() );
+	    }
+
+		private void computeDirectly() 
+		{
+			for ( Mass m : masses ) 
+			{
+				if ( ! m.isFixed() && ! m.isSelected() ) 
+				{
+					final Vector4 internalForces = m.calculateNeighbourForces();
+					result.add( new TaskResult( m , internalForces ) );
+				}
+			}
+		}
 	}
 	
 }
