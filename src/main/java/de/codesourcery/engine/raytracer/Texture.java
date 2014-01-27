@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
@@ -20,6 +21,10 @@ public class Texture
     public static Texture load(File file) throws IOException {
         return new Texture( ImageIO.read( file ) );
     }
+    
+    public static Texture load(InputStream in) throws IOException {
+        return new Texture( ImageIO.read( in ) );
+    }    
     
     public int getWidth() {
 		return width;

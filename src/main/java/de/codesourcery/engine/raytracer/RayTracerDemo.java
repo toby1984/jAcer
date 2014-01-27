@@ -1,18 +1,11 @@
 package de.codesourcery.engine.raytracer;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Point;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,7 +52,11 @@ public class RayTracerDemo {
 		final Plane leftPlane = new Plane( "left plane", new Vector4( -300,    0, 0 ) , new Vector4( 100 ,   0 , 0 ) ); // left plane    
 
 		// p4.material.diffuseColor = new Vector4(0,0,0.2);
-		horizontalPlane.material.texture = Texture.load( new File("/home/tobi/workspace/raytracer/src/main/resources/checkers.png" ) );
+		
+		try ( InputStream in = RayTracerDemo.class.getResourceAsStream( "/checkers.png" ) )
+		{
+			horizontalPlane.material.texture = Texture.load( in );
+		} 
 
 		final AxisAlignedCube cube = new AxisAlignedCube( "cube #1",  new Vector4( -100 , -500 , -600 ) , 200,400,600 );
 
