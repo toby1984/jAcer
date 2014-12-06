@@ -187,8 +187,16 @@ public class SpringMassSystem {
 		private List<TaskResult> result= new ArrayList<>();
 		private final List<Mass> masses;
 		
+		private from, to;
+		
 		public MyTask(List<Mass> masses) {
 			this.masses = masses;
+		}
+		
+		private MyTask(List<Mass> masses, int from, int to) {
+			this.masses = masses;
+			this.from = from;
+			this.to = to;
 		}
 		
 		@Override
@@ -210,26 +218,26 @@ public class SpringMassSystem {
 	     */
 	    protected void compute() 
 	    {
-	    	final int len = masses.size();
-	        if (len < FORK_THRESHOLD ) 
+	        if (to - from < FORK_THRESHOLD ) 
 	        {
-	            computeDirectly();
+	            computeDirectly(from, to);
 	            return;
 	        }
 	        
-	        final int split = len / 2;
+	        final int split = (from + to) / 2;
 	        
-	        MyTask task1 = new MyTask( masses.subList( 0 , split ) );
-	        MyTask task2 = new MyTask( masses.subList( split , masses.size() ) ) ;
+	        MyTask task1 = new MyTask( masses, from, split );
+	        MyTask task2 = new MyTask( masses, from + split, to ) ;
             invokeAll( task1,task2);
             result.addAll( task1.getRawResult() );
             result.addAll( task2.getRawResult() );
 	    }
 
-		private void computeDirectly() 
+		private void computeDirectly(int from, int to) 
 		{
-			for ( Mass m : masses ) 
+			for (int i = from; i < to; i++) 
 			{
+				Mass m = masses.get(i);
 				if ( ! m.isFixed() && ! m.isSelected() ) 
 				{
 					final Vector4 internalForces = m.calculateNeighbourForces();
